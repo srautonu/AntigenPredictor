@@ -101,7 +101,7 @@ public class ProteinGraph {
             //
             // <All_Proteins_File> should contain the list of protein-ids.
             //
-            System.out.println("Usage: java ProteinGraph <All_Proteins_File> <BlastSelf_Tabular_File>");
+            System.out.println("Usage: java ProteinGraph <All_Proteins_Fasta> <BlastSelf_Tabular_File>");
             return;
         }
 
@@ -116,7 +116,9 @@ public class ProteinGraph {
 
             while (null != (strInputLine = readerAllProteins.readLine()))
             {
-                addProtein(strInputLine);
+                if (strInputLine.startsWith(">")) {
+                    addProtein(strInputLine.split("\\|")[1]);
+                }
             }
 
             while (null != (strInputLine = readerBlastTable.readLine()))

@@ -12,33 +12,28 @@ import java.util.Map;
 public class NonAntigenFinder {
     public static void main(String[] args)
     {
-        String strAllProteinsFile;
-        String strBlastTableFile;
-        Map<String, String> map_nonAntigenSeq = new Hashtable<String, String>();
+        Map<String, Boolean> map_nonAntigenSeq = new Hashtable<String, Boolean>();
 
         if (args.length < 2) {
             //
             // <All_Proteins_File> should be comma separated id, seq pairs. The first line is ignored (considered heading)
             //
-            System.out.println("Usage: java NonAntigen <All_Proteins_File> <Blast_Tabular_File>");
+            System.out.println("Usage: java NonAntigenFinder <NonAntigens_Fasta> <Antigens_NonAntigens_Subset_Blast_File>");
             return;
         }
 
-        strAllProteinsFile = args[0];
-        strBlastTableFile = args[1];
-
         try (
-            BufferedReader readerAllProteins = new BufferedReader(new FileReader(strAllProteinsFile));
-            BufferedReader readerBlastTable = new BufferedReader(new FileReader(strBlastTableFile));
+            BufferedReader readerFasta = new BufferedReader(new FileReader(args[0]));
+            BufferedReader readerBlastTable = new BufferedReader(new FileReader(args[1]));
         )
         {
             String strLine;
 
-            strLine = readerAllProteins.readLine(); // Ignore the heading
-            while (null != (strLine = readerAllProteins.readLine()))
+            while (null != (strLine = readerFasta.readLine()))
             {
-                String[] rgTokens = strLine.split(",");
-                map_nonAntigenSeq.put(rgTokens[0], rgTokens[1]);
+                if (strLine.startsWith(">")) {
+                    map_nonAntigenSeq.put(strLine.split("\\|")[1], true);
+                }
             }
 
             while (null != (strLine = readerBlastTable.readLine()))
@@ -47,21 +42,17 @@ public class NonAntigenFinder {
                 String strId = strLine.split("\t")[0];
                 strId = strId.split("\\|")[1];
                 if (map_nonAntigenSeq.get(strId) != null)
-                    map_nonAntigenSeq.put(strId, "");
+                    map_nonAntigenSeq.put(strId, false);
             }
 
-            for (Map.Entry<String, String> entry : map_nonAntigenSeq.entrySet())
+            for (Map.Entry<String, Boolean> entry : map_nonAntigenSeq.entrySet())
             {
-                if (entry.getValue().length() > 0)
-                    System.out.println(entry.getKey() + ",no," + entry.getValue());
+                if (entry.getValue())
+                    System.out.println(entry.getKey());
             }
         }
         catch (IOException e) {
             Logger.Log(e);
         }
-
-
-
-
     }
 }
