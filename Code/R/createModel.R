@@ -2,12 +2,12 @@ library(e1071)
 library(ROCR)
 library(randomForest)
 
-source('C:/Users/mrahman/Desktop/Research/FromKhaled/CRISPRpred-master/CRISPRpred/crisprpred/R_src/featurization/featurization.R');
-source('C:/Users/mrahman/Desktop/Research/FromKhaled/CRISPRpred-master/CRISPRpred/crisprpred/R_src/featurization/countpattern.R');
-source('C:/Users/mrahman/Desktop/Research/FromKhaled/CRISPRpred-master/CRISPRpred/crisprpred/R_src/featurization/findposition.R');
-source('C:/Users/mrahman/Desktop/Research/FromKhaled/CRISPRpred-master/CRISPRpred/crisprpred/R_src/featurization/featurefiltering.R');
+source('./featurization/featurization.R');
+source('./featurization/countpattern.R');
+source('./featurization/findposition.R');
+source('./featurefiltering.R');
 
-origData = read.csv("viral_trainingset.csv");
+origData = read.csv("viralTrainingSet.csv");
 amins = c("A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "Y")
 
 # LOOPING SHOULD START HERE ON VALUES OF SEQORDER AND POSORDER
@@ -24,16 +24,19 @@ bestParams = NULL;
 cat("seed, seq, pos, nFeatures, costSVM, Threshold, F1-Score\n")
 
 #for (rngSeed in seq(from=10, to=100, by=10)) {
-for (rngSeed in seq(from=10, to=30, by=10)) {
+for (rngSeed in seq(from=30, to=30, by=10)) {
   # randomly permutate the data
   set.seed(rngSeed);
   data = origData[sample(nrow(origData)),];
   nData = length(data[,1]);
   
-  for (posorder in 0:2) {
-    for (seqorder in 1:3) {
-      features = featurization(data$Sequence, amins, seq = (seqorder != 0), seqorder, pos = (posorder != 0), posorder);
-      features$protection = data$protection;
+  for (posorder in 0:0) {
+    for (seqorder in 3:3) {
+      #features = featurization(data$Sequence, amins, seq = (seqorder != 0), seqorder, pos = (posorder != 0), posorder);
+      #write.csv(features, "featurized.csv", row.names=FALSE);
+      #features$protection = data$protection;
+      features = read.csv("featurized.csv");
+      features$protection = as.factor(data$protection);
       
       # split the data in training, validation and test sets
       nTrainingSet = floor(nData * 0.6);
@@ -46,15 +49,21 @@ for (rngSeed in seq(from=10, to=30, by=10)) {
       validationSet = features[(nTrainingSet + 1) : (nTrainingSet + nValidationSet),];
       testSet = features[(nTrainingSet + nValidationSet + 1) : (nTrainingSet + nValidationSet + nTestSet),];
       
-      # we will take no more than 10000 features
-      temp1 = min(ncol(trainingSet) - 1, 10000);
-      temp2 = floor(temp1 / 5);
+      # we will take featuers no more than 10 * trainingSet size
+      temp1 = 10 * nrow(trainingSet);
+      temp2 = nrow(trainingSet);
       
-      for (maxFeatureCount in seq(from=temp1, to=temp2, by=-temp2)) {
+      cat("Line 56\n");
+      
+      for (maxFeatureCount in seq(from=temp2, to=temp1, by= 2 * temp2)) {
         filteringRes = featurefiltering(trainingSet, validationSet, testSet, protection ~ ., maxFeatureCount);
+        
+        cat("Line 61\n");
+        
         trainingSet = filteringRes$trainingSet;
         validationSet = filteringRes$validationSet;
         testSet = filteringRes$testSet;
+        
         
         svmCostList = c(0.01, 0.03, 0.10, 0.30, 1, 3, 10, 30, 100);
         for (svmC in svmCostList) {
