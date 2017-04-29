@@ -1,8 +1,6 @@
 featurefiltering <-
-  function(trainingSet, validationSet, testSet, rfformula, maxFeatureCount = Inf) {
+  function(trainingSet, validationSet, testSet, rfmodel, maxFeatureCount = Inf) {
     if (ncol(trainingSet) - 1 > maxFeatureCount) {
-      rfmodel = randomForest(rfformula, trainingSet, importance=TRUE)
-  
       randomforestfeatures = rfmodel$importance
       # sort descending based on IncNodePurity
       randomforestfeatures = randomforestfeatures[order(-randomforestfeatures[,2]),]

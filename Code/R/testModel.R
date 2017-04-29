@@ -2,27 +2,28 @@ library(e1071)
 library(ROCR)
 library(randomForest)
 
-source('C:/Users/mrahman/Desktop/Research/FromKhaled/CRISPRpred-master/CRISPRpred/crisprpred/R_src/featurization/featurization.R');
-source('C:/Users/mrahman/Desktop/Research/FromKhaled/CRISPRpred-master/CRISPRpred/crisprpred/R_src/featurization/countpattern.R');
-source('C:/Users/mrahman/Desktop/Research/FromKhaled/CRISPRpred-master/CRISPRpred/crisprpred/R_src/featurization/findposition.R');
-source('C:/Users/mrahman/Desktop/Research/FromKhaled/CRISPRpred-master/CRISPRpred/crisprpred/R_src/featurization/featurefiltering.R');
+source('./featurization/featurization.R');
+source('./featurization/countpattern.R');
+source('./featurization/findposition.R');
+source('./featurefiltering.R');
 
-origData = read.csv("viral_trainingset.csv");
+origData = read.csv("viralTrainingSet.csv");
 amins = c("A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "Y")
 
-rngSeed = 10;
-seqorder = 1;
+rngSeed = 30;
+seqorder = 3;
 posorder = 0;
-nFeatures = 8088;
+nFeatures = 1260;
 svmC = 0.01;
-threshold = 0.2;
+threshold = 0.35;
 
 # randomly permutate the data
 set.seed(rngSeed);
 data = origData[sample(nrow(origData)),];
 nData = length(data[,1]);
   
-features = featurization(data$Sequence, amins, seq = (seqorder != 0), seqorder, pos = (posorder != 0), posorder);
+#features = featurization(data$Sequence, amins, seq = (seqorder != 0), seqorder, pos = (posorder != 0), posorder);
+features = read.csv("featurized.csv");
 features$protection = data$protection;
       
 # split the data in training, validation and test sets
@@ -35,15 +36,17 @@ nTestSet = nValidationSet;
 trainingSet = features[1:nTrainingSet,];
 validationSet = features[(nTrainingSet + 1) : (nTrainingSet + nValidationSet),];
 testSet = features[(nTrainingSet + nValidationSet + 1) : (nTrainingSet + nValidationSet + nTestSet),];
-      
-filteringRes = featurefiltering(trainingSet, validationSet, testSet, protection ~ ., nFeatures);
+
+rfmodel = readRDS("rfmodel.rds");
+filteringRes = featurefiltering(trainingSet, validationSet, testSet, rfmodel, nFeatures);
 trainingSet = filteringRes$trainingSet;
 validationSet = filteringRes$validationSet;
 testSet = filteringRes$testSet;
+
+svmmodel = svm(protection ~ ., trainingSet, kernel = "linear", cost = svmC)
+svmpred = as.vector(predict(svmmodel, validationSet));
         
-svmmodel = svm(protection ~ ., trainingSet, kernel = "linear", cost = svmC, cross=nrow(trainingSet))
-svmpred = as.vector(predict(svmmodel, testSet));
-          
+
 svmprediction = prediction(1 * (svmpred >= threshold), testSet[,"protection"]);
 # F1-score
 F1 = unlist(performance(svmprediction,"f")@y.values)[2];

@@ -3,7 +3,7 @@
 #' This function takes dataset and a list of features as input and produce a features-wise dataset. The number of columns in returned dataset is equal to the number of features in featurelist.
 #'
 #' @param sequences provided as dataframe
-#' @param string a list of aminoacids or nucleotides
+#' @param alphabet a list of aminoacids or nucleotides
 #' @param seq sequence based features. by default it is true.
 #' @param seqorder highest number of sequence which will be considered together
 #' @param pos position specific features. by default it is true.
@@ -17,57 +17,80 @@
 #' featuredata = featurization(input, string, seq = TRUE, pos = FALSE)
 #' featuredata
 featurization <-
-  function(sequences, string, seq = TRUE, seqorder = 2, pos = TRUE, posorder = 2, rfmodel = NULL) {
-    total = 0;
+  function(sequences, alphabet, seqorder) {
     features = data.frame(1:length(sequences))
+    # a dummy column got created. Let us name it. We will
+    # delete this column at the end
     colnames(features)[length(features)] = "Serial"
-    if (seq == TRUE) {
-      for (s in 1:seqorder) {
-        permu = gtools::permutations(
-          n = length(string), r = s, v = string, repeats.allowed = TRUE
-        )
-        for (i in 1:length((permu[,1]))) {
-          temp = countpattern(sequence = sequences, pattern = paste(permu[i,], collapse = ''))
-          #cat(length(temp),permu[i,],"\n")
-          if (sum(temp) > 0) {
-            features = data.frame(features, temp)
-            colnames(features)[length(features)] = paste(permu[i,], collapse = '')
-          }
-          total = total + 1
-        }
-        cat(s, " order seq. features:", length(permu[,1]), ":total features = ", total, "\n")
+    
+    #prepare the columns for sequence based features
+    # for (s in 1:seqorder) {
+    #   permu = gtools::permutations(
+    #     n = length(alphabet), r = s, v = alphabet, repeats.allowed = TRUE
+    #   )
+    # 
+    #   for (i in 1:length((permu[,1]))) {
+    #     featureName = paste0(permu[i,], collapse = '');
+    #     features[featureName] = integer(nrow(features));
+    #   }
+    # }
+    # 
+    # for (i in 1:nrow(features)) {
+    #   strSeq = strsplit(toString(sequences[i]), "")[[1]];
+    #   for (j in 1:length(strSeq)) {
+    #     token = "";
+    #     for (k in 1:seqorder) {
+    #       if (j+k-1 > length(strSeq)) {
+    #         break;
+    #       }
+    #       token = paste(token, strSeq[j+k-1],sep = "");
+    # 
+    #       if (token %in% colnames(features)) {
+    #         # In rare case, a sequence may contain amino acid symbol ('X')
+    #         # that is not in our alphabet. In that case, we ignore it
+    # 
+    #         features[i,token] = features[i,token] + 1;
+    #       }
+    #     }
+    #   }
+    # }
+    
+    gap = 9;
+    
+    # gapped dipeptide features
+    # prepare the columns for gapped dipeptide based features
+    permu = gtools::permutations(
+      n = length(alphabet), r = 2, v = alphabet, repeats.allowed = TRUE
+    )
+    
+    for (i in 1:length((permu[,1]))) {
+      for (j in 0:gap) {
+        featureName = paste0(permu[i,], collapse = '');
+        featureName = paste0(featureName, "_", j);
+        features[featureName] = integer(nrow(features));
       }
     }
-    if (pos == TRUE)
-    {
-      minlength = min(unlist(lapply(sequences, function(s) {
-        nchar(toString(s))
-      })))
-      for (p in 1:posorder) {
-        permu = gtools::permutations(
-          n = length(string), r = p, v = string, repeats.allowed = TRUE
-        )
-        ps = 0
-        for (i in 1:(length(permu[,1]))) {
-          for (j in 1:(minlength - length(permu[i,]) + 1)) {
-            #cat("Checking:",paste(permu[i,],collapse = ''),"\n")
-            temp = findposition(sequence = sequences, pattern = paste(permu[i,], collapse = ''), j)
-            #cat(length(temp),permu[i,],"\n")
-            if (sum(temp) > 0) {
-              features = data.frame(features, temp)
-              colnames(features)[length(features)] = paste0(paste(permu[i,], collapse = ''), "_", j)
-            }
-            ps = ps + 1
-            total = total + 1
+
+    
+    for (i in 1:nrow(features)) {
+      strSeq = strsplit(toString(sequences[i]), "")[[1]];
+      for (j in 1:length(strSeq)) {
+        for (k in 1:gap) {
+          if (j+1+k > length(strSeq)) {
+            break;
+          }
+          token = paste(strSeq[j], strSeq[j+1+k], "_", k, sep = "");
+          if (token %in% colnames(features)) {
+            # In rare case, a sequence may contain amino acid symbol ('X')
+            # that is not in our alphabet. In that case, we ignore it
+            features[i,token] = features[i,token] + 1;
           }
         }
-        cat(p, "order pos. features:", ps,":total features = ", total, "\n")
       }
     }
+    
     features$Serial = NULL
-    #  Vienna analysis can only be done for nucleotide sequences.
-    # viennaData = viennaRNADataManipulation(sequences)
-    # features = data.frame(features, viennaData)
-    # cat("2 viennaRNAdata related features :total features = ", (total + 2), "\n")
+    
+    
     return(features)
   }
