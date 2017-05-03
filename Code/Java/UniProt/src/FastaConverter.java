@@ -1,7 +1,9 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -9,7 +11,8 @@ import java.util.Map;
  */
 public class FastaConverter {
     public static void main(String[] args) {
-        Map<String, Boolean> map_Protein = new Hashtable<String, Boolean>();
+        Map<String, String> map_Protein = new Hashtable<String, String>();
+        List<String> lst_Protein = new ArrayList<String>();
 
         if (args.length < 1) {
             //
@@ -28,18 +31,19 @@ public class FastaConverter {
             String strSequence = "";
 
             while (null != (strInputLine = readerIds.readLine())) {
-                map_Protein.put(strInputLine, true);
+                map_Protein.put(strInputLine, "");
+                lst_Protein.add(strInputLine);
             }
 
-            System.out.println("Uniprot,Sequence");
+            //System.out.println("Uniprot,Sequence");
             do
             {
                 strInputLine = readerFasta.readLine();
                 if (null == strInputLine || strInputLine.startsWith(">")) {
                     // Beginning of a new sequence encountered. Therefore,
                     // Complete the earlier sequence and report it.
-                    if (!strId.isEmpty() && null != map_Protein.get(strId)) {
-                        System.out.println(strId + "," + strSequence);
+                    if (!strId.isEmpty()) {
+                        map_Protein.put(strId, strSequence);
                     }
 
                     if (null != strInputLine) {
@@ -55,5 +59,8 @@ public class FastaConverter {
             Logger.Log(e);
         }
 
+        for (String strProtein : lst_Protein) {
+            System.out.println(strProtein + "," + map_Protein.get(strProtein));
+        }
     }
 }
