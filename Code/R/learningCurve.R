@@ -10,7 +10,7 @@ source('./featurefiltering.R');
 origData = read.csv("viralTrainingSet.csv");
 amins = c("A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "Y")
 
-rngSeed = 30;
+rngSeed = 10;
 
 
 # randomly permutate the data
@@ -19,9 +19,9 @@ data = origData[sample(nrow(origData)),];
 nData = length(data[,1]);
 
 timestamp();
-#features = featurization(data$Sequence, amins, seqorder=3);
-#write.csv(features, "featurized.csv", row.names=FALSE);
-features = read.csv("featurized.csv");
+features = featurization(data$Sequence, amins, seqorder=3);
+write.csv(features, "featurized.csv", row.names=FALSE);
+#features = read.csv("featurized.csv");
 
 features$protection = as.factor(data$protection);
 timestamp();
@@ -56,4 +56,7 @@ for (learningSet in seq(from=10, to=nTrainingSet, by=10)) {
   
   data = rbind(data, c(learningSet,  svmmodel$tot.MSE, temp));
   cat(learningSet, "," , svmmodel$tot.MSE, ",", temp, "\n");
+  
+  timestamp();
+  
 }
