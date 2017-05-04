@@ -32,7 +32,7 @@ data = origData[sample(nrow(origData)),];
 nData = length(data[,1]);
 
 timestamp();
-#features = featurization(data$Sequence, amins, seqorder=1);
+#features = featurization(data$Sequence, amins, seqorder=3);
 #write.csv(features, "featurized.csv", row.names=FALSE);
 features = read.csv("featurized_1000_RNG10_tripeptide.csv");
 cat(as.character(Sys.time()),">> Featurization is done. Total features: ", length(features[1,]), "\n");

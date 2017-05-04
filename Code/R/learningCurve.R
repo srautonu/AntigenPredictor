@@ -19,13 +19,22 @@ data = origData[sample(nrow(origData)),];
 nData = length(data[,1]);
 
 timestamp();
-features = featurization(data$Sequence, amins, seqorder=3);
-write.csv(features, "featurized.csv", row.names=FALSE);
-#features = read.csv("featurized.csv");
+#features = featurization(data$Sequence, amins, seqorder=3);
+#write.csv(features, "featurized.csv", row.names=FALSE);
+features = read.csv("featurized_1000_RNG10_tripeptide.csv");
+cat(as.character(Sys.time()),">> Featurization is done. Total features: ", length(features[1,]), "\n");
 
-features$protection = as.factor(data$protection);
-timestamp();
-cat("Featurization is done\n");
+# eliminate columns that do not contain data other than 0
+featureNames = colnames(features);
+for (featureName in featureNames) {
+  if (sum(features[,featureName]) == 0) {
+    features[,featureName] = NULL;
+  }
+}
+cat(as.character(Sys.time()),">> Removed empty features. Total features: ", length(features[1,]), "\n");
+
+features = 1 / (1 + exp(-features));
+cat(as.character(Sys.time()),">> Converted to sigmoid\n");
 
 # split the data in training (LOO-CV), and test sets
 nTrainingSet = floor(nData * 0.75);
@@ -46,7 +55,7 @@ for (learningSet in seq(from=10, to=nTrainingSet, by=10)) {
     next;
   }
   
-  svmmodel = svm(protection ~ ., trainingSet, kernel = "linear", cross = 10);
+  svmmodel = svm(protection ~ ., trainingSet, kernel = "linear", cross = 10, scale = FALSE);
 
   # out of sample error
   svmpred = as.vector(predict(svmmodel, testSet));
@@ -56,7 +65,7 @@ for (learningSet in seq(from=10, to=nTrainingSet, by=10)) {
   
   data = rbind(data, c(learningSet,  svmmodel$tot.MSE, temp));
   cat(learningSet, "," , svmmodel$tot.MSE, ",", temp, "\n");
-  
-  timestamp();
-  
 }
+
+write.csv(data, "learningCurve_1000_RNG10_tripeptide.csv");
+cat(as.character(Sys.time()), ">> Done.\n");
