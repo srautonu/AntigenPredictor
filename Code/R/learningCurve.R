@@ -42,7 +42,11 @@ for (learningSet in seq(from=10, to=nTrainingSet, by=10)) {
   trainingSet = features[1:learningSet,];
   testSet = features[(nTrainingSet + 1) : (nTrainingSet + nTestSet),];
   
-  svmmodel = svm(protection ~ ., trainingSet, kernel = "linear", cross = learningSet);
+  if (sum(trainingSet$protection) == 0) {
+    next;
+  }
+  
+  svmmodel = svm(protection ~ ., trainingSet, kernel = "linear", cross = 10);
 
   # out of sample error
   svmpred = as.vector(predict(svmmodel, testSet));
