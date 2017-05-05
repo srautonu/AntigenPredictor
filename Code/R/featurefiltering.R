@@ -1,11 +1,10 @@
 featurefiltering <-
-  function(trainingSet, validationSet, testSet, rfmodel, maxFeatureCount = Inf) {
+  function(trainingSet, testSet, rfmodel, maxFeatureCount = Inf) {
     if (ncol(trainingSet) - 1 > maxFeatureCount) {
       randomforestfeatures = rfmodel$importance
       # sort descending based on IncNodePurity
       randomforestfeatures = randomforestfeatures[order(-randomforestfeatures[,2]),]
-      #write.csv(randomforestfeatures, "rfmodel.csv");
-      
+
       featureFilter = c()
       for(i in 1:maxFeatureCount) {
         featureFilter = c(featureFilter,rownames(randomforestfeatures)[i])
@@ -15,14 +14,12 @@ featurefiltering <-
       for(i in 1:length(columns)){
         if(!columns[i] %in% featureFilter){
           trainingSet[columns[i]] = NULL
-          validationSet[columns[i]] = NULL
           testSet[columns[i]] = NULL
         }
       }
     }    
     return(list(
       "trainingSet" = trainingSet,
-      "validationSet" = validationSet,
       "testSet" = testSet
       ))
   }

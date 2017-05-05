@@ -8,7 +8,8 @@ source('./featurization/findposition.R');
 source('./featurefiltering.R');
 
 origData = read.csv("viralTrainingSet.csv");
-amins = c("A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "Y")
+amins = c("A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y");
+
 
 rngSeed = 10;
 
