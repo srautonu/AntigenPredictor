@@ -1,15 +1,9 @@
 featurefiltering <-
-  function(trainingSet, testSet, rfmodel, maxFeatureCount = Inf) {
+  function(trainingSet, testSet, rankedFeatures, maxFeatureCount = Inf) {
     if (ncol(trainingSet) - 1 > maxFeatureCount) {
-      randomforestfeatures = rfmodel$importance
-      # sort descending based on IncNodePurity
-      randomforestfeatures = randomforestfeatures[order(-randomforestfeatures[,2]),]
-
-      featureFilter = c()
-      for(i in 1:maxFeatureCount) {
-        featureFilter = c(featureFilter,rownames(randomforestfeatures)[i])
-      }
+      featureFilter = rankedFeatures[1:maxFeatureCount];
       featureFilter[length(featureFilter) + 1] = "protection"
+      
       columns = colnames(trainingSet)
       for(i in 1:length(columns)){
         if(!columns[i] %in% featureFilter){

@@ -17,79 +17,101 @@
 #' featuredata = featurization(input, string, seq = TRUE, pos = FALSE)
 #' featuredata
 featurization <-
-  function(sequences, alphabet, seqorder) {
+  function(sequences, labels, alphabet, seqorder, gap, posorder) {
     features = data.frame(1:length(sequences))
     # a dummy column got created. Let us name it. We will
     # delete this column at the end
     colnames(features)[length(features)] = "Serial"
     
-    #prepare the columns for sequence based features
-    for (s in 1:seqorder) {
-      permu = gtools::permutations(
-        n = length(alphabet), r = s, v = alphabet, repeats.allowed = TRUE
-      )
-
-      for (i in 1:length((permu[,1]))) {
-        featureName = paste0(permu[i,], collapse = '');
-        features[featureName] = integer(nrow(features));
-      }
-    }
-
-    for (i in 1:nrow(features)) {
-      strSeq = strsplit(toString(sequences[i]), "")[[1]];
-      for (j in 1:length(strSeq)) {
-        token = "";
-        for (k in 1:seqorder) {
-          if (j+k-1 > length(strSeq)) {
-            break;
-          }
-          token = paste(token, strSeq[j+k-1],sep = "");
-
-          if (token %in% colnames(features)) {
-            # In rare case, a sequence may contain amino acid symbol ('X')
-            # that is not in our alphabet. In that case, we ignore it
-
-            features[i,token] = features[i,token] + 1;
-          }
-        }
-      }
+    alphaMap = new.env();
+    for (key in alphabet) {
+      assign(key, TRUE, alphaMap);
     }
     
-    gap = 9;
+    nSeq = 0;
+    nPos = 0;
+    nGap = 0;
+    
+    if (seqorder > 0 || posorder > 0) {
+      for (i in 1:nrow(features)) {
+        strSeq = strsplit(toString(sequences[i]), "")[[1]];
+        for (j in 1:length(strSeq)) {
+          token = "";
+          for (k in 1:max(seqorder, posorder)) {
+            if (j+k-1 > length(strSeq)) {
+              break;
+            }
+            if (!(exists(strSeq[j+k-1], envir = alphaMap))) {
+              break;
+            }
 
-    # gapped dipeptide features
-    # prepare the columns for gapped dipeptide based features
-    permu = gtools::permutations(
-      n = length(alphabet), r = 2, v = alphabet, repeats.allowed = TRUE
-    )
-
-    for (i in 1:length((permu[,1]))) {
-      for (j in 1:gap) {
-        featureName = paste0(permu[i,], collapse = '');
-        featureName = paste0(featureName, "_", j);
-        features[featureName] = integer(nrow(features));
+            token = paste(token, strSeq[j+k-1],sep = "");
+            
+            # update the seqorder feature count
+            if (nchar(token) <= seqorder) {
+              if (!(token %in% colnames(features))) {
+                # create the column on demand
+                features[token] = integer(nrow(features));
+                nSeq = nSeq + 1;
+              }
+              features[i,token] = features[i,token] + 1;
+            }
+            
+            # update the posorder feature count
+            if (j <= 30 && nchar(token) <= posorder) {
+              posToken = paste("P", j, token, sep = "_");
+              if (!(posToken %in% colnames(features))) {
+                # create the column on demand
+                features[posToken] = integer(nrow(features));
+                nPos = nPos + 1;
+              }
+              features[i,posToken] = features[i,posToken] + 1;
+            }
+          }
+        }
       }
     }
-
-    for (i in 1:nrow(features)) {
-      strSeq = strsplit(toString(sequences[i]), "")[[1]];
-      for (j in 1:length(strSeq)) {
-        for (k in 1:gap) {
-          if (j+1+k > length(strSeq)) {
-            break;
+    cat(as.character(Sys.time()),">> n-mer based features:", nSeq, "\n");
+    cat(as.character(Sys.time()),">> position specific n-mer based features:", nPos, "\n");
+    
+    if (gap > 0) {
+  
+      for (i in 1:nrow(features)) {
+        strSeq = strsplit(toString(sequences[i]), "")[[1]];
+        for (j in 1:length(strSeq)) {
+          if (!(exists(strSeq[j], envir = alphaMap))) {
+            next;
           }
-          token = paste(strSeq[j], strSeq[j+1+k], "_", k, sep = "");
-          if (token %in% colnames(features)) {
-            # In rare case, a sequence may contain amino acid symbol ('X')
-            # that is not in our alphabet. In that case, we ignore it
+
+          for (k in 1:gap) {
+            if (j+1+k > length(strSeq)) {
+              break;
+            }
+            if (!(exists(strSeq[j+1+k], envir = alphaMap))) {
+              next;
+            }
+            token = paste("G", k, strSeq[j], strSeq[j+1+k], sep = "");
+            if (!(token %in% colnames(features))) {
+              # create the column on demand
+              features[token] = integer(nrow(features));
+              nGap = nGap + 1;
+            }
+            
             features[i,token] = features[i,token] + 1;
           }
         }
       }
     }
+    cat(as.character(Sys.time()),">> Gapped DPC based features:", nGap, "\n");
+    
+    cat(as.character(Sys.time()),">> Total features: ", length(features[1,]), "\n");
 
+    # features = 1 / (1 + exp(-features));
+    # cat(as.character(Sys.time()),">> Converted to sigmoid\n");
+    
+    features$protection = as.factor(labels);
+    names(features) = make.names(names(features));
     features$Serial = NULL
-    
     
     return(features)
   }
