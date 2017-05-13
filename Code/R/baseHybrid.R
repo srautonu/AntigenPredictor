@@ -4,14 +4,15 @@ library(randomForest)
 
 source('./featurefiltering.R');
 
+rngSeed = 10;
+nData = 200;
+
 featureFile = paste("featurized_", as.character(nData), "_hybrid", ".rds", sep = "");
 svmFile     = paste("svm_", as.character(nData), "_hybrid", ".rds", sep = "");
 fFilterFile = paste("ff_",  as.character(nData), "_hybrid", ".rds", sep = ""); 
 outFile     = paste("out_", as.character(nData), "_hybrid", ".csv", sep = "");
 lcFile      = paste("lc_",  as.character(nData), "_hybrid", ".csv", sep = "");   
 
-rngSeed = 10;
-nData = 200;
 schemes = c("_trimer","_posTrimer", "_gappedDPC");
 
 if (file.exists(featureFile)) {
