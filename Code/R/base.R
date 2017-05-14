@@ -2,21 +2,19 @@ library(e1071)
 library(ROCR)
 library(randomForest)
 
-source('./featurization/featurization.R');
-source('./featurization/countpattern.R');
-source('./featurization/findposition.R');
+source('./featurization.R');
 source('./featurefiltering.R');
 
-rngSeed = 10;
+timestamp();
 
+rngSeed = 10;
+fScheme = "_posTrimer";
 
 amins = c("A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y");
 
 antigens = read.csv("viralAntigens.csv");
 nonAntigens = read.csv("viralNonAntigens.csv");
 data = rbind(antigens, nonAntigens[1:length(antigens[,1]),]);
-
-timestamp();
 
 # randomly permutate the data
 cat(as.character(Sys.time()),">> Random permutation of data:\n");
@@ -32,7 +30,6 @@ cat(as.character(Sys.time()),">> Training set antigen ratio", sum(data[1:nTraini
 cat(as.character(Sys.time()),">> Test set antigen ratio", sum(data[(nTrainingSet+1):nData, "protection"])/nTestSet, "\n");
 
 # File names #
-fScheme = "_posTrimer";
 rfmodelFile = paste("rfmodel_", as.character(nData), fScheme, ".rds", sep = "");
 svmFile     = paste("svm_", as.character(nData), fScheme, ".rds", sep = "");
 featureFile = paste("featurized_", as.character(nData), fScheme, ".rds", sep = "");
@@ -42,7 +39,7 @@ lcFile      = paste("lc_", as.character(nData), fScheme, ".csv", sep = "");
 cat(as.character(Sys.time()),">> Featurizing ...\n");
 if (!file.exists(featureFile)) {
   #features = featurization(data$Sequence, data$protection, amins, seqorder=0, gap = 25, posorder = 0);
-  features = featurization(data$Sequence, data$protection, amins, seqorder = 0, gap = 0, posorder = 3);
+  features = featurization(data$Sequence, data$protection, amins, seqorder = 0, gap = 25, posorder = 0);
   saveRDS(features, featureFile);
   write.csv(features, "featurized.csv");
   cat(as.character(Sys.time()),">> Done.\n");

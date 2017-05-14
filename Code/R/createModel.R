@@ -17,7 +17,7 @@ for (maxFeatureCount in seq(from=2000, to=10, by=-10))
   svmCostList = c(0.01, 0.03, 0.10, 0.30, 1, 3, 10, 30, 100);
   for (svmC in svmCostList) 
   {
-    svmmodel = svm(protection ~ ., trainingSet, kernel = "linear", cost = svmC, cross = nTrainingSet, scale = TRUE);
+    svmmodel = svm(protection ~ ., trainingSet, kernel = "linear", cost = svmC, cross = 10, scale = TRUE);
     perf = svmmodel$tot.accuracy;
     
     cat(maxFeatureCount, ",", svmC, ",", perf);
