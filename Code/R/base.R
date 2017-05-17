@@ -38,10 +38,8 @@ lcFile      = paste("lc_", as.character(nData), fScheme, ".csv", sep = "");
 
 cat(as.character(Sys.time()),">> Featurizing ...\n");
 if (!file.exists(featureFile)) {
-  #features = featurization(data$Sequence, data$protection, amins, seqorder=0, gap = 25, posorder = 0);
   features = featurization(data$Sequence, data$protection, amins, seqorder = 0, gap = 25, posorder = 0);
   saveRDS(features, featureFile);
-  write.csv(features, "featurized.csv");
   cat(as.character(Sys.time()),">> Done.\n");
 } else {
   features = readRDS(featureFile);

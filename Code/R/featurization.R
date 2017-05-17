@@ -49,16 +49,17 @@ featurization <-
             
             # update the seqorder feature count
             if (nchar(token) <= seqorder) {
-              if (!(token %in% colnames(features))) {
+              countToken = paste("C", 0, token, sep = "_")
+              if (!(countToken %in% colnames(features))) {
                 # create the column on demand
-                features[token] = integer(nrow(features));
+                features[countToken] = integer(nrow(features));
                 nSeq = nSeq + 1;
               }
-              features[i,token] = features[i,token] + 1;
+              features[i,countToken] = features[i,countToken] + 1;
             }
             
             # update the posorder feature count
-            if (j <= 30 && nchar(token) <= posorder) {
+            if (j <= 10 && nchar(token) <= posorder) {
               posToken = paste("P", j, token, sep = "_");
               if (!(posToken %in% colnames(features))) {
                 # create the column on demand
@@ -90,7 +91,8 @@ featurization <-
             if (!(exists(strSeq[j+1+k], envir = alphaMap))) {
               next;
             }
-            token = paste("G", k, strSeq[j], strSeq[j+1+k], sep = "");
+            token = paste(strSeq[j], strSeq[j+1+k], sep = "");
+            token = paste("G", k, token, sep = "_");
             if (!(token %in% colnames(features))) {
               # create the column on demand
               features[token] = integer(nrow(features));
