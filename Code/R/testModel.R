@@ -1,4 +1,4 @@
-source('./base.R');
+source('./baseHybrid.R');
 
 cat(as.character(Sys.time()),">> Reading SVM model from", svmFile, "...\n");
 svmmodel = readRDS(svmFile);

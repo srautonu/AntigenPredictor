@@ -7,13 +7,13 @@ source('./featurefiltering.R');
 rngSeed = 10;
 nData = 830;
 
-featureFile = paste("featurized_", as.character(nData), "_hybrid", ".rds", sep = "");
-svmFile     = paste("svm_", as.character(nData), "_hybrid", ".rds", sep = "");
-fFilterFile = paste("ff_",  as.character(nData), "_hybrid", ".rds", sep = ""); 
-outFile     = paste("out_", as.character(nData), "_hybrid", ".csv", sep = "");
-lcFile      = paste("lc_",  as.character(nData), "_hybrid", ".csv", sep = "");   
+featureFile = paste("featurized_", as.character(nData), "_cpnmer", ".rds", sep = "");
+svmFile     = paste("svm_", as.character(nData), "_cpnmer", ".rds", sep = "");
+fFilterFile = paste("ff_",  as.character(nData), "_cpnmer", ".rds", sep = ""); 
+outFile     = paste("out_", as.character(nData), "_cpnmer", ".csv", sep = "");
+lcFile      = paste("lc_",  as.character(nData), "_cpnmer", ".csv", sep = "");   
 
-schemes = c("_trimer","_posTrimer", "_gappedDPC");
+schemes = c("_trimer","_posTrimer");
 
 if (file.exists(featureFile)) {
   features = readRDS(featureFile);
@@ -25,10 +25,12 @@ if (file.exists(featureFile)) {
   features$Serial = seq.int(nData);
   for (fScheme in schemes) {
     curFeatureFile = paste("featurized_", as.character(nData), fScheme, ".rds", sep = "");
-    #for (colname in colnames(curFea))
     curFeatures = readRDS(curFeatureFile);
     curFeatures$Serial <- seq.int(nrow(curFeatures))
     cat(as.character(Sys.time()),">> Read file: ", curFeatureFile, "\n");
+    if (!is.null(features$protection)) {
+      curFeatures$protection = NULL;
+    }
     features = merge(features, curFeatures, by="Serial");
   }
   features$Serial = NULL;

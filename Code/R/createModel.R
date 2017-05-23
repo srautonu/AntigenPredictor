@@ -1,11 +1,11 @@
-source('./base.R');
+source('./baseHybrid.R');
 
 bestAcc = 0;
 bestSVM = NULL;
 bestParams = NULL;
 accData = NULL;
 
-for (maxFeatureCount in seq(from=2000, to=10, by=-10)) 
+for (maxFeatureCount in seq(from=10, to=2000, by=10)) 
 {
   trainingSet = features[1:nTrainingSet,];
   testSet = features[(nTrainingSet + 1) : (nTrainingSet + nTestSet),];
