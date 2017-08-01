@@ -128,10 +128,11 @@ public class ProteinGraph {
 
                 strQueryId = strTokens[0].split("\\|")[1];
                 strSubjectId = strTokens[1];
-                Double pIdent = Double.parseDouble(strTokens[2]);
+                Double bitScore = Double.parseDouble(strTokens[strTokens.length - 1]);
+                Double pIdent   = Double.parseDouble(strTokens[2]);
 
-                //if (pIdent > 50.0)
-                    addProteinLink(strQueryId, strSubjectId);
+                //if (pIdent > 60)
+                addProteinLink(strQueryId, strSubjectId);
             }
 
             int temp = 0;

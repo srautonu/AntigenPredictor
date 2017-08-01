@@ -7,6 +7,44 @@ import java.util.*;
  * Created by mrahman on 22-Apr-17.
  */
 public class FastaConverter {
+    public static void printProteinsFasta(String strFastaFile, Collection<String> lstProteins) {
+        Map<String, Boolean> map_Protein = new Hashtable<String, Boolean>();
+        for (String protein:lstProteins) {
+            map_Protein.put(protein, true);
+        }
+
+        try (BufferedReader readerFasta = new BufferedReader(new FileReader(strFastaFile))) {
+            String strInputLine;
+            String strId = "";
+            String strCurProtein = "";
+            boolean fDiscard = true;
+
+            do {
+                strInputLine = readerFasta.readLine();
+                if (null == strInputLine || strInputLine.startsWith(">")) {
+                    if (!fDiscard) {
+                        System.out.print(strCurProtein);
+                    }
+
+                    if (null != strInputLine) {
+                        fDiscard = false;
+                        strCurProtein = strInputLine + "\r\n";
+
+                        strId = strInputLine.split("\\|")[1];
+                        if (!map_Protein.containsKey(strId)) {
+                            fDiscard = true;
+                        }
+                    }
+                } else {
+                    strCurProtein += strInputLine + "\r\n";
+                }
+            } while (null != strInputLine);
+        } catch (IOException e) {
+            Logger.Log(e);
+        }
+    }
+
+
     public static Map<String, String> getProteinSequences(String strFastaFile) {
         Map<String, String> map_Protein = new Hashtable<String, String>();
         try (BufferedReader readerFasta = new BufferedReader(new FileReader(strFastaFile))) {
@@ -40,22 +78,29 @@ public class FastaConverter {
 
     public static void main(String[] args) {
         Map<String, String> map_Protein;
-        Collection<String> lst_Protein;
+        Collection<String> lst_Protein = new ArrayList<String>();
 
-        if (args.length < 1) {
+        String strFastaFile;
+        String strConvType;
+        String strSubsetFile;
+
+        if (args.length < 2) {
             //
+            // Convertion type is CSV or FASTA
             // <Fasta_file> should contain fasta for one or more proteins.
             // <SubsetIDs_File> optional file specifying the proteins of interest. If not specified
             // then all proteins are output
             //
-            System.out.println("Usage: java FastaConverter <Fasta_File> [<SubsetIDs_File>]");
+            System.out.println("Usage: java FastaConverter CSV <Fasta_File> [<SubsetIDs_File>]");
             return;
         }
 
-        map_Protein = getProteinSequences(args[0]);
-        if (args.length >= 2) {
-            lst_Protein = new ArrayList<String>();
-            try (BufferedReader readerIds = new BufferedReader(new FileReader(args[1]))) {
+        strConvType = args[0];
+        strFastaFile = args[1];
+        strSubsetFile = (args.length >= 3 ? args[2] : "");
+
+        if (!strSubsetFile.isEmpty()) {
+            try (BufferedReader readerIds = new BufferedReader(new FileReader(strSubsetFile))) {
                 String strInputLine;
                 while (null != (strInputLine = readerIds.readLine())) {
                     lst_Protein.add(strInputLine);
@@ -63,12 +108,20 @@ public class FastaConverter {
             } catch (IOException e) {
                 Logger.Log(e);
             }
-        } else {
-            lst_Protein = map_Protein.keySet();
         }
 
-        for (String strProtein : lst_Protein) {
-            System.out.println(strProtein + "," + map_Protein.get(strProtein));
+        if (strConvType.equalsIgnoreCase("csv")) {
+            map_Protein = getProteinSequences(strFastaFile);
+            if (lst_Protein.isEmpty()) {
+                lst_Protein = map_Protein.keySet();
+            }
+
+            for (String strProtein : lst_Protein) {
+                System.out.println(strProtein + "," + map_Protein.get(strProtein));
+            }
+        }
+        else if (strConvType.equalsIgnoreCase("fasta")) {
+            printProteinsFasta(strFastaFile, lst_Protein);
         }
     }
 }
