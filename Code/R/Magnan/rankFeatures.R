@@ -1,0 +1,42 @@
+library(randomForest)
+
+timestamp();
+
+set.seed(10);
+
+nData = 1152;
+fScheme = "_nGrams";
+
+rfmodelFile = paste("rfmodel_", as.character(nData), fScheme, ".rds", sep = "");
+rankedFeaturesFile = paste("ff_", as.character(nData), fScheme, ".rds", sep = "");
+featureFile = paste("featurized_", as.character(nData), fScheme, ".rds", sep = "");
+
+if (!file.exists(rankedFeaturesFile)) {
+  cat(as.character(Sys.time()),">> Loading feature file ...\n");
+  features = readRDS(featureFile);
+  cat(as.character(Sys.time()),">> Done ( from cached file:", featureFile, ")\n");
+ 
+  features$ID = NULL;
+  features$Type = NULL;
+  cat(as.character(Sys.time()),">> Total features: ", length(features[1,]) - 1, "\n");
+  
+  cat(as.character(Sys.time()),">> Computing random forest ...\n");
+  if (!file.exists(rfmodelFile)) {
+    rfmodel = randomForest(protection ~ ., features, importance=TRUE);
+    saveRDS(rfmodel, rfmodelFile);
+    cat(as.character(Sys.time()),">> Done.\n");
+  } else {
+    rfmodel = readRDS(rfmodelFile);
+    cat(as.character(Sys.time()),">> Done ( from cached file:", rfmodelFile, ")\n");
+  }
+  
+  cat(as.character(Sys.time()),">> Computing feature ranking ...\n");
+  rankedFeatures = rownames(rfmodel$importance[order(-rfmodel$importance[,3]),])
+  saveRDS(rankedFeatures, rankedFeaturesFile);
+  cat(as.character(Sys.time()),">> Done\n");
+  
+} else {
+  cat(as.character(Sys.time()),">> Computing feature ranking ...\n");
+  rankedFeatures = readRDS(rankedFeaturesFile);
+  cat(as.character(Sys.time()),">> Done ( from cached file:", rankedFeaturesFile, ")\n");
+}

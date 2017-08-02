@@ -12,18 +12,23 @@ featurefiltering <-
       for(i in 1:length(columns)){
         if(!columns[i] %in% featureFilter){
           trainingSet[columns[i]] = NULL
-          testSet[columns[i]] = NULL
+          if (!is.null(testSet)) {
+            testSet[columns[i]] = NULL
+          }
         }
       }
     }  
-    columns = colnames(testSet)
-    traincolumns = colnames(trainingSet)
-
-    for(i in 1:length(traincolumns)){
-        if(!traincolumns[i] %in% columns){
-          trainingSet[traincolumns[i]] = NULL
-        }
-    }  
+    
+    if (!is.null(testSet)) {
+      columns = colnames(testSet)
+      traincolumns = colnames(trainingSet)
+  
+      for(i in 1:length(traincolumns)){
+          if(!traincolumns[i] %in% columns){
+            trainingSet[traincolumns[i]] = NULL
+          }
+      }  
+    }
     
     return(list(
       "trainingSet" = trainingSet,
