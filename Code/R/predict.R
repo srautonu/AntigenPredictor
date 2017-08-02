@@ -1,6 +1,6 @@
 source('./filteredFeaturization.R');
 
-svmFile = "svm_830_hybrid.rds";
+svmFile = "svm_830_cpnmer_heuristic.rds";
 sequenceFile = "VirusData_FromArif.csv";
 featureFile = "featurized_VirusData_FromArif.rds"
 
