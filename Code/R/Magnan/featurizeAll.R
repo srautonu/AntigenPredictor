@@ -9,7 +9,7 @@ timestamp();
 
 set.seed(10);
 
-fScheme = "_ngrams";
+fScheme = "_PSF";
 
 amins = c("A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y");
 
@@ -27,7 +27,9 @@ svmFile     = paste("svm_", as.character(nData), fScheme, ".rds", sep = "");
 
 cat(as.character(Sys.time()),">> Featurizing ...\n");
 if (!file.exists(featureFile)) {
-  features = featurization(data$Sequence, data$protection, amins, nGramOrder = 3, gap = 0, posorder = 0);
+  features = featurization(data$Sequence, data$protection, amins, nGramOrder = 0, nGDipOrder = 25, psfOrder = 0);
+  features$ID = data$ID
+  features$Type = data$Type;
   saveRDS(features, featureFile);
   cat(as.character(Sys.time()),">> Done.\n");
 } else {
