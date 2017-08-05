@@ -21,7 +21,7 @@ svmCV <-
     svmprediction = prediction(predVector, data$protection);
     auc  = ROCR::performance(svmprediction,"auc")@y.values[[1]];
     
-    accSeries = ROCR::performance(prediction(svmpred, data$protection),"acc");
+    accSeries = ROCR::performance(svmprediction,"acc");
     threshold = unlist(accSeries@x.values)[[which.max(unlist(accSeries@y.values))]];
     
     svmprediction = prediction(as.numeric(predVector >= threshold), data$protection);
