@@ -42,9 +42,9 @@ if (!file.exists(svmFile)) {
   cat(as.character(Sys.time()),">> Model built.\n");
 } else {
   cat(as.character(Sys.time()),">> Loading SVM model from ", svmFile, " ... \n");
-  svmmodel = readRDS(svmFile);
-  maxFeatureCount = length(svmmodel$SV[1,]);
-  svmC = svmmodel$cost;
+  svmModel = readRDS(svmFile);
+  maxFeatureCount = length(svmModel$SV[1,]);
+  svmC = svmModel$cost;
   cat(as.character(Sys.time()),">> Done.  <maxFeatureCount, svmC> = <", maxFeatureCount, ", ", svmC, ">\n");
 }
 
@@ -60,7 +60,7 @@ testSet = featurefiltering(features, rankedFeatures, maxFeatureCount);
 cat(as.character(Sys.time()),">> Test set Features filtered.\n");
 
 cat(as.character(Sys.time()),">> Predicting ...\n");
-svmpred = predict(svmmodel, testSet);
+svmpred = predict(svmModel, testSet);
 svmprediction = prediction(svmpred, testSet$protection);
 cat(as.character(Sys.time()),">> Done.\n");
 
