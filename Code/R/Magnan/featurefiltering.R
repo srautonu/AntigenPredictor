@@ -1,38 +1,24 @@
 featurefiltering <-
-  function(trainingSet, testSet, rankedFeatures, maxFeatureCount = Inf) {
-    fcVector = c()
-    if (ncol(trainingSet) - 1 > maxFeatureCount) {
-      columns = colnames(trainingSet)
-      featureFilter = rankedFeatures[1:maxFeatureCount];
-      fcVector = match(featureFilter, columns)
-      fcVector = fcVector[!is.na(fcVector)]
-      fcVector = sort(fcVector)
-      featureFilter[length(featureFilter) + 1] = "protection"
-      
+  function(features, rankedFeatures, maxFeatureCount = Inf) {
+    columns = colnames(features)
+    featureFilter = rankedFeatures[1:maxFeatureCount];
+    featureFilter[length(featureFilter) + 1] = "protection"
+    
+    if (ncol(features) - 1 > maxFeatureCount) {
       for(i in 1:length(columns)){
         if(!columns[i] %in% featureFilter){
-          trainingSet[columns[i]] = NULL
-          if (!is.null(testSet)) {
-            testSet[columns[i]] = NULL
-          }
+          features[columns[i]] = NULL
         }
       }
-    }  
-    
-    if (!is.null(testSet)) {
-      columns = colnames(testSet)
-      traincolumns = colnames(trainingSet)
-  
-      for(i in 1:length(traincolumns)){
-          if(!traincolumns[i] %in% columns){
-            trainingSet[traincolumns[i]] = NULL
-          }
-      }  
     }
     
-    return(list(
-      "trainingSet" = trainingSet,
-      "testSet" = testSet,
-      "fcVector" = fcVector
-      ))
+    # Ensure that all the selected features do exist
+    # in the input set (even if with 0 value)
+    for(i in 1:length(featureFilter)){
+      if(!featureFilter[i] %in% columns){
+        features[featureFilter[i]] = 0
+      }
+    }
+    
+    return(features);
   }

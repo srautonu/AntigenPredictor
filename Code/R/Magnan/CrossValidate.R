@@ -50,8 +50,7 @@ cat(as.character(Sys.time()),">> Entering cross validation. Folds = ", nFolds, "
 
 for (maxFeatureCount in featureCountList) 
 {
-  filteringRes = featurefiltering(features, NULL, rankedFeatures, maxFeatureCount);
-  trainingSet = filteringRes$trainingSet;
+  trainingSet = featurefiltering(features, rankedFeatures, maxFeatureCount);
 
   for (svmC in svmCostList) 
   {
@@ -76,6 +75,7 @@ for (maxFeatureCount in featureCountList)
 }
 
 cat("Best Result for <nF, C> = ", bestParams$maxFeatureCount, bestParams$svmC, "\n");
+cat("Threshold  : ", bestPerf$threshold, "\n");
 cat("AUCROC     : ", bestPerf$auc, "\n");
 cat("Accuracy   : ", bestPerf$acc, "\n");
 cat("Sensitivity: ", bestPerf$sens, "\n");

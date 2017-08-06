@@ -32,6 +32,7 @@ svmCV <-
     mccv = unlist(ROCR::performance(svmprediction,"mat")@y.values)[2];
     
     return(list(
+      "threshold" = threshold,
       "auc" = auc,
       "acc" = acc,
       "sens" = sensitivity,

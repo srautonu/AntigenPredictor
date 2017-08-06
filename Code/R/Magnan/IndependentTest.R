@@ -1,0 +1,93 @@
+library(e1071)
+library(ROCR)
+
+source('featurefiltering.R');
+
+timestamp();
+
+set.seed(10);
+
+nTrainData = 1152;
+fScheme = "_nGDip";
+
+maxFeatureCount = 3000;
+svmC = 1;
+resultsFileName = "IndependentTestResults.csv"
+
+rankedFeaturesFile = paste("ff_", as.character(nTrainData), fScheme, ".rds", sep = "");
+featureFile        = paste("featurized_", as.character(nTrainData), fScheme, ".rds", sep = "");
+testFeatureFile    = paste("testFeaturized", fScheme, ".rds", sep = "");
+svmFile            = paste("svm_", as.character(nTrainData), fScheme, ".rds", sep = "");
+
+cat(as.character(Sys.time()),">> Loading feature ranking ...\n");
+rankedFeatures = readRDS(rankedFeaturesFile);
+cat(as.character(Sys.time()),">> Done ( from cached file:", rankedFeaturesFile, ")\n");
+
+if (!file.exists(svmFile)) {
+  cat(as.character(Sys.time()),">> Building SVM model for <maxFeatureCount, svmC> = <", maxFeatureCount, ", ", svmC, "> ...\n");
+
+  features = readRDS(featureFile);
+  features$ID = NULL;
+  features$Type = NULL;
+  features$protection = as.numeric(features$protection) - 1;
+  # random shuffle of features
+  features <- features[sample(nrow(features)),]
+  cat(as.character(Sys.time()),">> Training set features loaded from", featureFile, "\n");
+  
+  trainingSet = featurefiltering(features, rankedFeatures, maxFeatureCount);
+  cat(as.character(Sys.time()),">> Training set Features filtered.\n");
+  
+  svmModel = svm(protection ~ ., trainingSet, kernel = "linear", cost = svmC, scale = TRUE);
+  saveRDS(svmModel, svmFile);
+  cat(as.character(Sys.time()),">> Model built.\n");
+} else {
+  cat(as.character(Sys.time()),">> Loading SVM model from ", svmFile, " ... \n");
+  svmmodel = readRDS(svmFile);
+  maxFeatureCount = length(svmmodel$SV[1,]);
+  svmC = svmmodel$cost;
+  cat(as.character(Sys.time()),">> Done.  <maxFeatureCount, svmC> = <", maxFeatureCount, ", ", svmC, ">\n");
+}
+
+cat(as.character(Sys.time()),">> Loading Test set features ...\n");
+features = readRDS(testFeatureFile);
+features$ID = NULL;
+features$Type = NULL;
+features$protection = as.numeric(features$protection) - 1;
+cat(as.character(Sys.time()),">> Done ( from cached file:", testFeatureFile, ")\n");
+
+cat(as.character(Sys.time()),">> Filtering Test set features ...\n");
+testSet = featurefiltering(features, rankedFeatures, maxFeatureCount);
+cat(as.character(Sys.time()),">> Test set Features filtered.\n");
+
+cat(as.character(Sys.time()),">> Predicting ...\n");
+svmpred = predict(svmmodel, testSet);
+svmprediction = prediction(svmpred, testSet$protection);
+cat(as.character(Sys.time()),">> Done.\n");
+
+cat(as.character(Sys.time()),">> Recording performance in ", resultsFileName, "  ...\n");
+itData = data.frame(matrix(ncol = 4, nrow = 0))
+for (threshold in seq(from=0.50, to=0.70, by=0.05)) {
+
+  svmprediction = prediction(as.numeric(svmpred >= threshold), testSet$protection);
+  acc  = unlist(ROCR::performance(svmprediction,"acc")@y.values)[2];
+  sens = unlist(ROCR::performance(svmprediction,"sens")@y.values)[2];
+  spec = unlist(ROCR::performance(svmprediction,"spec")@y.values)[2];
+
+  itData = rbind(itData, c(threshold, sens, spec, acc));
+  
+  threshold = threshold + 0.05;
+}
+colnames(itData) = c("Threshold", "Sensitivity", "Specificity", "Accuracy");
+write.csv(t(itData), resultsFileName);
+cat(as.character(Sys.time()),">> Done.\n");
+
+cat(as.character(Sys.time()),">> Calculating enrichment ...\n");
+sortOrder = order(-svmpred);
+
+for (rank in c(2,5,10,25)) {
+
+  topRanked = round(rank * length(testSet[,1]) / 100, 0);
+  num = sum(testSet[sortOrder[1:topRanked],"protection"])/topRanked;
+  den = sum(testSet$protection) / length(testSet[,1]);
+  cat(round(num / den, 1), "\n")
+}
