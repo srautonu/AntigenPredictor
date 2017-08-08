@@ -3,19 +3,18 @@ library(ROCR)
 library(randomForest)
 
 source('./featurization.R');
-source('./featurefiltering.R');
 
 timestamp();
 
-# antigensFile = "antigens.csv";
-# nonAntigensFile = "nonAntigens.csv";
-# featureFilePrefix = "featurized_1152";
+antigensFile = "antigens.csv";
+nonAntigensFile = "nonAntigens.csv";
+featureFilePrefix = "featurized_1324";
 
-antigensFile = "Bartonella_Antigen.csv";
-nonAntigensFile = "Bartonella_NonAntigen.csv";
-featureFilePrefix = "testFeaturized";
+# antigensFile = "Bartonella_Antigen.csv";
+# nonAntigensFile = "Bartonella_NonAntigen.csv";
+# featureFilePrefix = "testFeaturized";
 
-fScheme = "_nGDip";
+fScheme = "_nGrams";
 
 featureFile = paste(featureFilePrefix, fScheme, ".rds", sep = "");
 
@@ -36,7 +35,7 @@ if (!file.exists(featureFile)) {
   data = rbind(antigens, nonAntigens);
   nData = length(data[,1]);
   
-  features = featurization(data$Sequence, data$protection, amins, nGramOrder = 0, nGDipOrder = 25, psfOrder = 0);
+  features = featurization(data$Sequence, data$protection, amins, nGramOrder = 3, nGDipOrder = 0, psfOrder = 0);
   features$ID = data$ID
   features$Type = data$Type;
   saveRDS(features, featureFile);

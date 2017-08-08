@@ -8,10 +8,10 @@ timestamp();
 set.seed(10);
 
 nTrainData = 1152;
-fScheme = "_nGDip";
+fScheme = "_PSF";
 
-maxFeatureCount = 3000;
-svmC = 1;
+maxFeatureCount = 4000;
+svmC = 0.01;
 resultsFileName = "IndependentTestResults.csv"
 
 rankedFeaturesFile = paste("ff_", as.character(nTrainData), fScheme, ".rds", sep = "");

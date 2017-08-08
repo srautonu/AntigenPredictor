@@ -21,6 +21,9 @@ svmCV <-
     svmprediction = prediction(predVector, data$protection);
     auc  = ROCR::performance(svmprediction,"auc")@y.values[[1]];
     
+    rocCurve = ROCR::performance(svmprediction,"tpr", "fpr");
+    prCurve  = ROCR::performance(svmprediction,"prec", "rec");
+    
     accSeries = ROCR::performance(svmprediction,"acc");
     threshold = unlist(accSeries@x.values)[[which.max(unlist(accSeries@y.values))]];
     
@@ -31,12 +34,16 @@ svmCV <-
     specificity = unlist(ROCR::performance(svmprediction,"spec")@y.values)[2];
     mccv = unlist(ROCR::performance(svmprediction,"mat")@y.values)[2];
     
+    
     return(list(
       "threshold" = threshold,
       "auc" = auc,
       "acc" = acc,
       "sens" = sensitivity,
       "spec" = specificity,
-      "mcc" = mccv
+      "mcc" = mccv,
+      "rocCurve" = rocCurve,
+      "prCurve" = prCurve,
+      
       ))
   }
