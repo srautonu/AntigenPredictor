@@ -4,8 +4,8 @@ timestamp();
 
 set.seed(10);
 
-nData = 1152;
-fScheme = "_nGrams";
+nData = 1324;
+fScheme = "_comb";
 
 rfmodelFile = paste("rfmodel_", as.character(nData), fScheme, ".rds", sep = "");
 rankedFeaturesFile = paste("ff_", as.character(nData), fScheme, ".rds", sep = "");
