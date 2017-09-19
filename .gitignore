@@ -5,4 +5,6 @@ code/java/uniprot/.idea/uiDesigner.xml
 code/java/uniprot/out/
 code/R/Magnan/PSSM/
 code/R/Magnan/TestSetFASTAs/
+code/R/Magnan/TestSetPSSMs/
 code/R/Magnan/TrainingSetFASTAs/
+code/R/Magnan/TrainingSetPSSMs/
