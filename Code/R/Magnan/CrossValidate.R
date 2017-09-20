@@ -8,33 +8,39 @@ timestamp();
 
 set.seed(10);
 
-nData = 1152;
-fScheme = "_ngrams";
-
-rankedFeaturesFile = paste("ff_", as.character(nData), fScheme, ".rds", sep = "");
-featureFile = paste("featurized_", as.character(nData), fScheme, ".rds", sep = "");
-outFile     = paste("out_", as.character(nData), fScheme, ".csv", sep = "");
+DoRegression = TRUE;
+svmCostList = c(0.3, 1, 3, 10, 30, 100);
+featureCountList = seq(from=2800, to=1500, by=-50);
 
 # 10 fold CV
 nFolds = 10
 
-cat(as.character(Sys.time()),">> Loading feature file ...\n");
+fScheme = "_ngrams";
+
+rankedFeaturesFile = paste("ff"         , fScheme, ".rds", sep = "");
+featureFile        = paste("featurized" , fScheme, ".rds", sep = "");
+outFile            = paste("out"        , fScheme, ".csv", sep = "");
+
+cat(as.character(Sys.time()),">> Reading training set features from", featureFile, "...\n");
 features = readRDS(featureFile);
-cat(as.character(Sys.time()),">> Done ( from cached file:", featureFile, ")\n");
+cat(as.character(Sys.time()),">> Done\n");
 
-features$ID = NULL;
-features$Type = NULL;
-# The featurization makes the protection column as factor.
-# so for regression study, we need to convert it to numeric. However
-# as.numeric creates values 1 and 2 for the levels 0 and 1 respectively.
-# As such, we need to deduct 1.
-features$protection = as.numeric(features$protection) - 1;
+# cat(as.character(Sys.time()),">> Reading feature ranking from", rankedFeaturesFile, "...\n");
+# rankedFeatures = readRDS(rankedFeaturesFile);
+# cat(as.character(Sys.time()),">> Done\n");
 
-cat(as.character(Sys.time()),">> Total features: ", length(features[1,]) - 1, "\n");
+# jackknife
+if (nFolds < 0) {
+  nFolds = length(features[,1])
+}
 
-cat(as.character(Sys.time()),">> Loading feature ranking ...\n");
-rankedFeatures = readRDS(rankedFeaturesFile);
-cat(as.character(Sys.time()),">> Done ( from cached file:", rankedFeaturesFile, ")\n");
+#
+# Balance the dataset (576+576) by undersampling the negative (larger) set
+#
+positiveSet = features[sample(1:576),]
+negativeSetInd = sample(577:length(features[,1]))[1:576]
+negativeSetInd = negativeSetInd[order(negativeSetInd)]
+features = rbind(features[1:576,], features[negativeSetInd,])
 
 # random shuffle of features
 features <- features[sample(nrow(features)),]
@@ -43,10 +49,19 @@ bestPerf = NULL;
 bestParams = NULL;
 accData = NULL;
 
-svmCostList = c(0.01, 0.1, 1, 10, 100);
-featureCountList = seq(from=3000, to=500, by=-100); 
-
 cat(as.character(Sys.time()),">> Entering cross validation. Folds = ", nFolds, " ...\n");
+
+# Reduce the feature vectors to the max size that we will be testing.
+# This way the filtering cost in the loop below will be reduced.
+features = featurefiltering(features, rankedFeatures, max(featureCountList));
+
+# For regression study, we need to 'unfactor' the dependent var.
+#
+if (DoRegression) {
+  # When converting from factor to numeric, Antigens becomes 2 and Non-antigens becomes 1.
+  # So we need to deduct 1.
+  features$protection = as.numeric(features$protection) - 1;
+}
 
 for (maxFeatureCount in featureCountList) 
 {
@@ -55,10 +70,15 @@ for (maxFeatureCount in featureCountList)
   for (svmC in svmCostList) 
   {
     perf = svmCV(protection ~ ., trainingSet, svmCost = svmC, cross = nFolds);
-
-    cat(maxFeatureCount, ",", svmC, ",", perf$auc, ",", perf$acc, ",", perf$sens, ",", perf$spec, ",", perf$mcc);
+    if (DoRegression) {
+      cat(maxFeatureCount, ",", svmC, ",", perf$auc,  ",",  perf$threshold, ",", perf$acc, ",", perf$spec, ",", perf$sens, ",", perf$mcc);
+      accData = rbind(accData, c(maxFeatureCount, svmC, perf$auc, perf$threshold, perf$acc, perf$spec, perf$sens, perf$mcc));
+    } else {
+      
+      cat(maxFeatureCount, ",", svmC, ",", perf$acc, ",", perf$sens, ",", perf$spec, ",", perf$mcc);
+      accData = rbind(accData, c(maxFeatureCount, svmC, perf$acc, perf$sens, perf$spec, perf$mcc));
+    }
     
-    accData = rbind(accData, c(maxFeatureCount, svmC, perf$auc, perf$acc, perf$sens, perf$spec, perf$mcc));
     write.csv(accData, outFile);
     
     if (is.null(bestPerf) || bestPerf$acc < perf$acc) {
@@ -73,6 +93,23 @@ for (maxFeatureCount in featureCountList)
     cat("\n");
   }
 }
+
+cat("Best Result for <nF, C> = ", bestParams$maxFeatureCount, bestParams$svmC, "\n");
+if (DoRegression) {
+  cat("AUCROC                : ", bestPerf$auc, "\n");
+  cat("Threshold             : ", bestPerf$threshold, "\n");
+  # For regression we set Cis-Golgi to 1. So, sens is accuracy of Cis-Golgi
+  # Let's swap the sens and spec
+  temp = bestPerf$sens;
+  bestPerf$sens = bestPerf$spec;
+  bestPerf$spec = temp;
+}
+
+cat("Accuracy (Overall)    : ", bestPerf$acc, "\n");
+cat("Accuracy (Trans-Golgi): ", bestPerf$sens, "\n");
+cat("Accuracy (Cis-Golgi)  : ", bestPerf$spec, "\n")
+cat("MCC                   : ", bestPerf$mcc, "\n")
+
 
 cat("Best Result for <nF, C> = ", bestParams$maxFeatureCount, bestParams$svmC, "\n");
 cat("Threshold  : ", bestPerf$threshold, "\n");

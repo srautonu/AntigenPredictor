@@ -4,12 +4,14 @@ timestamp();
 
 set.seed(10);
 
-nData = 1324;
-fScheme = "_comb";
+fScheme = "_nGrams";
 
-rfmodelFile = paste("rfmodel_", as.character(nData), fScheme, ".rds", sep = "");
-rankedFeaturesFile = paste("ff_", as.character(nData), fScheme, ".rds", sep = "");
-featureFile = paste("featurized_", as.character(nData), fScheme, ".rds", sep = "");
+fileNameSuffix = paste(fScheme, ".rds", sep = "");
+
+rfmodelFile        = paste("rfmodel"   , fileNameSuffix, sep = "");
+rankedFeaturesFile = paste("ff"        , fileNameSuffix, sep = "");
+featureFile        = paste("featurized", fileNameSuffix, sep = "");
+
 
 if (!file.exists(rankedFeaturesFile)) {
   cat(as.character(Sys.time()),">> Loading feature file ...\n");
