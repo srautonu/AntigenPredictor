@@ -1,4 +1,6 @@
-
+#
+# Reduce the tier/order of a feature space
+#
 inputFile  = "featurized_1324_PSF10.rds"
 outputFile = "featurized_1324_PSF.rds"
 prefOrder  = 5;

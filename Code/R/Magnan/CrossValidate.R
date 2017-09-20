@@ -15,7 +15,7 @@ featureCountList = seq(from=2800, to=1500, by=-50);
 # 10 fold CV
 nFolds = 10
 
-fScheme = "_ngrams";
+fScheme = "_comb";
 
 rankedFeaturesFile = paste("ff"         , fScheme, ".rds", sep = "");
 featureFile        = paste("featurized" , fScheme, ".rds", sep = "");
@@ -25,9 +25,9 @@ cat(as.character(Sys.time()),">> Reading training set features from", featureFil
 features = readRDS(featureFile);
 cat(as.character(Sys.time()),">> Done\n");
 
-# cat(as.character(Sys.time()),">> Reading feature ranking from", rankedFeaturesFile, "...\n");
-# rankedFeatures = readRDS(rankedFeaturesFile);
-# cat(as.character(Sys.time()),">> Done\n");
+cat(as.character(Sys.time()),">> Reading feature ranking from", rankedFeaturesFile, "...\n");
+rankedFeatures = readRDS(rankedFeaturesFile);
+cat(as.character(Sys.time()),">> Done\n");
 
 # jackknife
 if (nFolds < 0) {
@@ -96,25 +96,11 @@ for (maxFeatureCount in featureCountList)
 
 cat("Best Result for <nF, C> = ", bestParams$maxFeatureCount, bestParams$svmC, "\n");
 if (DoRegression) {
-  cat("AUCROC                : ", bestPerf$auc, "\n");
-  cat("Threshold             : ", bestPerf$threshold, "\n");
-  # For regression we set Cis-Golgi to 1. So, sens is accuracy of Cis-Golgi
-  # Let's swap the sens and spec
-  temp = bestPerf$sens;
-  bestPerf$sens = bestPerf$spec;
-  bestPerf$spec = temp;
+  cat("AUCROC      : ", bestPerf$auc, "\n");
+  cat("Threshold   : ", bestPerf$threshold, "\n");
 }
 
-cat("Accuracy (Overall)    : ", bestPerf$acc, "\n");
-cat("Accuracy (Trans-Golgi): ", bestPerf$sens, "\n");
-cat("Accuracy (Cis-Golgi)  : ", bestPerf$spec, "\n")
-cat("MCC                   : ", bestPerf$mcc, "\n")
-
-
-cat("Best Result for <nF, C> = ", bestParams$maxFeatureCount, bestParams$svmC, "\n");
-cat("Threshold  : ", bestPerf$threshold, "\n");
-cat("AUCROC     : ", bestPerf$auc, "\n");
-cat("Accuracy   : ", bestPerf$acc, "\n");
-cat("Sensitivity: ", bestPerf$sens, "\n");
-cat("Specificity: ", bestPerf$spec, "\n")
-cat("MCC        : ", bestPerf$mcc, "\n")
+cat("Accuracy    : ", bestPerf$acc, "\n");
+cat("Sensitivity : ", bestPerf$sens, "\n");
+cat("Specificity : ", bestPerf$spec, "\n");
+cat("MCC         : ", bestPerf$mcc, "\n");

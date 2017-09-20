@@ -15,35 +15,54 @@ svmCV <-
       predVector = c(predVector, as.numeric(svmpred))
       i = i + 1
     }
-
-    # Find optimal threshold based on accuracy
-    # Also find the AUCROC
-    svmprediction = prediction(predVector, data$protection);
-    auc  = ROCR::performance(svmprediction,"auc")@y.values[[1]];
     
-    rocCurve = ROCR::performance(svmprediction,"tpr", "fpr");
-    prCurve  = ROCR::performance(svmprediction,"prec", "rec");
+    dependentVar = all.vars(formula)[1];
     
-    accSeries = ROCR::performance(svmprediction,"acc");
-    threshold = unlist(accSeries@x.values)[[which.max(unlist(accSeries@y.values))]];
-    
-    svmprediction = prediction(as.numeric(predVector >= threshold), data$protection);
-    
-    acc = unlist(ROCR::performance(svmprediction,"acc")@y.values)[2]
-    sensitivity = unlist(ROCR::performance(svmprediction,"sens")@y.values)[2];
-    specificity = unlist(ROCR::performance(svmprediction,"spec")@y.values)[2];
-    mccv = unlist(ROCR::performance(svmprediction,"mat")@y.values)[2];
-    
-    
-    return(list(
-      "threshold" = threshold,
-      "auc" = auc,
-      "acc" = acc,
-      "sens" = sensitivity,
-      "spec" = specificity,
-      "mcc" = mccv,
-      "rocCurve" = rocCurve,
-      "prCurve" = prCurve,
+    # perform classification based perf. measures
+    if (is.factor(data[,dependentVar])) {
+      svmprediction = prediction(as.numeric(predVector), as.numeric(data[,dependentVar]))
       
+      acc = unlist(ROCR::performance(svmprediction,"acc")@y.values)[2]
+      sensitivity = unlist(ROCR::performance(svmprediction,"sens")@y.values)[2];
+      specificity = unlist(ROCR::performance(svmprediction,"spec")@y.values)[2];
+      mcc = unlist(ROCR::performance(svmprediction,"mat")@y.values)[2];
+    
+      return(list(
+        "acc"  = acc,
+        "sens" = sensitivity,
+        "spec" = specificity,
+        "mcc"  = mcc
+        ))
+    }
+    else {
+      # perform regression based perf. measurements
+      
+      # Find optimal threshold based on accuracy
+      # Also find the AUCROC
+      svmprediction = prediction(predVector, data[, dependentVar]);
+      auc  = ROCR::performance(svmprediction,"auc")@y.values[[1]];
+      rocCurve = ROCR::performance(svmprediction,"tpr", "fpr");
+      prCurve  = ROCR::performance(svmprediction,"prec", "rec");
+      
+      accSeries = ROCR::performance(svmprediction,"acc");
+      threshold = unlist(accSeries@x.values)[[which.max(unlist(accSeries@y.values))]];
+      
+      svmprediction = prediction(as.numeric(predVector >= threshold), data[, dependentVar]);
+      
+      acc = unlist(ROCR::performance(svmprediction,"acc")@y.values)[2]
+      sensitivity = unlist(ROCR::performance(svmprediction,"sens")@y.values)[2];
+      specificity = unlist(ROCR::performance(svmprediction,"spec")@y.values)[2];
+      mcc = unlist(ROCR::performance(svmprediction,"mat")@y.values)[2];
+      
+      return(list(
+        "threshold" = threshold,
+        "rocCurve" = rocCurve,
+        "prCurve"  = prCurve,
+        "auc" = auc,
+        "acc" = acc,
+        "sens" = sensitivity,
+        "spec" = specificity,
+        "mcc" = mcc
       ))
+    }
   }
