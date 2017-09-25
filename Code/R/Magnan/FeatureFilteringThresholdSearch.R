@@ -1,6 +1,6 @@
 library(e1071)
 library(ROCR)
-#library(pracma)
+library(pracma)
 library(ggplot2)
 
 source('featurefiltering.R');
@@ -88,8 +88,8 @@ for (maxFeatureCount in featureCountList)
 }
 
 
-rocCurveFile = paste("ROCCurve", balancing, ".eps", sep = "");
-prCurveFile  = paste("PRCurve",  balancing, ".eps", sep = "");
+rocCurveFile = "ROCCurve.eps";
+prCurveFile  = "PRCurve.eps";
 
 rocPlot = ggplot(rocCurvePoints,aes(x, y)) + 
   theme_bw(base_size = 36, base_family = "") +
