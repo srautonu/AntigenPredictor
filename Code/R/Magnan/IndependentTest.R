@@ -7,17 +7,16 @@ timestamp();
 
 set.seed(10);
 
-nTrainData = 1152;
-fScheme = "_PSF";
-
-maxFeatureCount = 4000;
-svmC = 0.01;
+fScheme = "_PSF10";
+maxFeatureCount = 800;
+svmC = 0.3;
 resultsFileName = "IndependentTestResults.csv"
 
-rankedFeaturesFile = paste("ff_", as.character(nTrainData), fScheme, ".rds", sep = "");
-featureFile        = paste("featurized_", as.character(nTrainData), fScheme, ".rds", sep = "");
+# File names #
+rankedFeaturesFile = paste("ff"            , fScheme, ".rds", sep = "");
+featureFile        = paste("featurized"    , fScheme, ".rds", sep = "");
 testFeatureFile    = paste("testFeaturized", fScheme, ".rds", sep = "");
-svmFile            = paste("svm_", as.character(nTrainData), fScheme, ".rds", sep = "");
+svmFile            = paste("svm"           , fScheme, ".rds", sep = "");
 
 cat(as.character(Sys.time()),">> Loading feature ranking ...\n");
 rankedFeatures = readRDS(rankedFeaturesFile);
@@ -65,26 +64,28 @@ svmprediction = prediction(svmpred, testSet$protection);
 cat(as.character(Sys.time()),">> Done.\n");
 
 cat(as.character(Sys.time()),">> Recording performance in ", resultsFileName, "  ...\n");
-itData = data.frame(matrix(ncol = 4, nrow = 0))
-for (threshold in seq(from=0.50, to=0.70, by=0.05)) {
+itData = data.frame(matrix(ncol = 5, nrow = 0))
+for (threshold in seq(from=0.01, to=0.99, by=0.01)) {
 
   svmprediction = prediction(as.numeric(svmpred >= threshold), testSet$protection);
   acc  = unlist(ROCR::performance(svmprediction,"acc")@y.values)[2];
   sens = unlist(ROCR::performance(svmprediction,"sens")@y.values)[2];
   spec = unlist(ROCR::performance(svmprediction,"spec")@y.values)[2];
+  mcc  = unlist(ROCR::performance(svmprediction,"mat")@y.values)[2];
+  prec = unlist(ROCR::performance(svmprediction,"prec")@y.values)[2];
 
-  itData = rbind(itData, c(threshold, sens, spec, acc));
-  
-  threshold = threshold + 0.05;
+  itData = rbind(itData, c(threshold, acc, sens, spec, mcc, prec));
 }
-colnames(itData) = c("Threshold", "Sensitivity", "Specificity", "Accuracy");
+
+colnames(itData) = c("Threshold", "Accuracy", "Sensitivity", "Specificity", "MCC", "Precision");
 write.csv(t(itData), resultsFileName);
 cat(as.character(Sys.time()),">> Done.\n");
 
 cat(as.character(Sys.time()),">> Calculating enrichment ...\n");
 sortOrder = order(-svmpred);
 
-for (rank in c(2,5,10,25)) {
+#for (rank in c(2,5,10,25)) {
+for (rank in seq(from=1, to=100, by=1)) {
 
   topRanked = round(rank * length(testSet[,1]) / 100, 0);
   num = sum(testSet[sortOrder[1:topRanked],"protection"])/topRanked;

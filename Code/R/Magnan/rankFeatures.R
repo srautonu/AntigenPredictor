@@ -4,7 +4,7 @@ timestamp();
 
 set.seed(10);
 
-fScheme = "_nGrams";
+fScheme = "_pssm_nGDip25";
 
 fileNameSuffix = paste(fScheme, ".rds", sep = "");
 

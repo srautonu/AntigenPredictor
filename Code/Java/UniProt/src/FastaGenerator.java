@@ -40,7 +40,7 @@ public class FastaGenerator {
 
         if (args.length < 1) {
             //
-            // Convertion from CSV file into FASTA forma
+            // Convertion from CSV file into FASTA format
             // <CSV_File> The first 2 columns must contain the ID and sequence
             // <SubsetIDs_File> optional file specifying the proteins of interest. If not specified
             // then all proteins are output

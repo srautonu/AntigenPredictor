@@ -10,11 +10,11 @@ timestamp();
 
 set.seed(10);
 
-featureCountList = seq(from = 6000, to = 500, by = -500); 
+featureCountList = seq(from = 7500, to = 500, by = -500); 
 
 nFolds = 10
 
-fScheme   = "_nGDip25";
+fScheme   = "_pssm_nGDip25";
 
 # File names #
 rankedFeaturesFile = paste("ff"         , fScheme, ".rds", sep = "");

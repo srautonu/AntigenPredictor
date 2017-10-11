@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include <stdlib.h>
 
 #define ARRAYSIZE(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -13,10 +12,22 @@
 #define MAX_FEATURE_NAME_LEN 7
 
 #define BASE_FOLDER "C:\\GitHub\\AntigenPredictor\\Code\\R\\Magnan\\"
-#define ANTIGEN_FILE        BASE_FOLDER "antigens.csv"
-#define NON_ANTIGEN_FILE    BASE_FOLDER "nonAntigens.csv"
-#define PSSM_FOLDER         BASE_FOLDER "TrainingSetPSSMs"
-#define FEATURIZED_FILE     BASE_FOLDER "featurized_pssm_nGDip25.csv"
+
+//
+// For training data set featurization
+//
+//#define ANTIGEN_FILE        BASE_FOLDER "antigens.csv"
+//#define NON_ANTIGEN_FILE    BASE_FOLDER "nonAntigens.csv"
+//#define PSSM_FOLDER         BASE_FOLDER "TrainingSetPSSMs"
+//#define FEATURIZED_FILE     BASE_FOLDER "featurized_pssm_nGrams.csv"
+
+//
+// For test data set featurization. Uncomment when needed, and comment out the above block
+//
+#define ANTIGEN_FILE        BASE_FOLDER "Bartonella_Antigen.csv"
+#define NON_ANTIGEN_FILE    BASE_FOLDER "Bartonella_NonAntigen.csv"
+#define PSSM_FOLDER         BASE_FOLDER "TestSetPSSMs"
+#define FEATURIZED_FILE     BASE_FOLDER "testFeaturized_pssm_nGrams.csv"
 
 struct Protein {
     char id[MAX_PROTEIN_ID_LEN + 1];
@@ -139,7 +150,6 @@ void nGDipFeaturize(Protein *pProt, int nGDipOrder)
     printf("Done.\n");
 }
 
-
 void nGDipFeaturizeAll(int nGDipOrder)
 {
     int i, k, u, v;
@@ -162,15 +172,109 @@ void nGDipFeaturizeAll(int nGDipOrder)
     }
 }
 
+void nGramsContribPerPosition(Protein *pProt, int curPos, int *pCurFeatureId, int nGramOrder, int curOrder, double curScore)
+{
+    int u;
+
+    if (curOrder >= nGramOrder) {
+        return;
+    } 
+    else if (curPos >= strlen(pProt->seq)) {
+        //
+        // Since there are no more positions, but ngram order still
+        // not exhausted, the feature id for the ignored ngrams should
+        // be added.
+        //
+        if (curPos >= strlen(pProt->seq)) {
+            int k = nGramOrder - curOrder;
+            int n = ARRAYSIZE(_amins);
+            int t = 1;
+
+            while (k--) {
+                t *= n;
+            }
+
+            *pCurFeatureId += n * (t - 1) / (n - 1);
+        }
+        return;
+    }
+
+    for (u = 0; u < ARRAYSIZE(_amins); u++) {
+
+        double tScore = curScore * pProt->pssm[curPos][u];
+
+        pProt->featureVector[*pCurFeatureId] += tScore;
+        ++(*pCurFeatureId);
+
+        nGramsContribPerPosition(pProt, curPos + 1, pCurFeatureId, nGramOrder, curOrder + 1, tScore);
+    }
+}
+
+void nGramsFeaturize(Protein *pProt, int nGramOrder)
+{
+    int i, len, iFeature;
+
+    printf("Featurizing protein %s ... ", pProt->id);
+    memset(pProt->featureVector, 0, sizeof(pProt->featureVector));
+
+    len = strlen(pProt->seq);
+
+    for (i = 0; i < len; i++) {
+        iFeature = 0;
+        nGramsContribPerPosition(pProt, i, &iFeature, nGramOrder, 0, 1);
+    }
+
+    printf("Done.\n");
+
+}
+
+void nGramsFeatureColumns(int nGramOrder, int curOrder, char* curName)
+{
+    int u;
+
+    if (curOrder >= nGramOrder) {
+        return;
+    }
+
+    for (u = 0; u < ARRAYSIZE(_amins); u++) {
+        curName[curOrder] = _amins[u];
+
+        sprintf(_featureName[_nFeatures], "C_0_%s", curName);
+        _nFeatures++;
+
+        nGramsFeatureColumns(nGramOrder, curOrder + 1, curName);
+
+        curName[curOrder] = '\0';
+    }
+}
+
+
+void nGramsFeaturizeAll(int nGramOrder)
+{
+    char buf[MAX_FEATURE_NAME_LEN + 1] = {0};
+    int i;
+
+    nGramsFeatureColumns(nGramOrder, 0, buf);
+
+    for (i = 0; i < _nProteins; i++) {
+        nGramsFeaturize(&_prot[i], 3);
+    }
+}
+
 int main()
 {
     printf("Loading proteins ... ");
     loadProteins();
     printf("Done.\n");
 
+    //printf("Featurizing proteins ... \n");
+    //nGDipFeaturizeAll(25);
+    //printf("Featurizing completed.\n");
+
     printf("Featurizing proteins ... \n");
-    nGDipFeaturizeAll(25);
+    nGramsFeaturizeAll(3);
     printf("Featurizing completed.\n");
+
 
     printf("Saving features to %s ... ", FEATURIZED_FILE);
     storeFeaturized();
