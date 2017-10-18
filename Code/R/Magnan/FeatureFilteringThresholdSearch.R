@@ -10,16 +10,18 @@ timestamp();
 
 set.seed(10);
 
-featureCountList = seq(from = 7500, to = 500, by = -500); 
-
 nFolds = 10
 
-fScheme   = "_pssm_nGDip25";
+fScheme   = "_pssm_nGrams";
+
+#featureCountList = NULL;
+featureCountList = seq(from = 10000, to = 5500, by = -500);
 
 # File names #
-rankedFeaturesFile = paste("ff"         , fScheme, ".rds", sep = "");
-featureFile        = paste("featurized" , fScheme, ".rds", sep = "");
-outFile            = paste("out"        , fScheme, ".csv", sep = "");
+rdsFilesFolder     = "RDSFiles/";
+rankedFeaturesFile = paste(rdsFilesFolder, "ff"         , fScheme, ".rds", sep = "");
+featureFile        = paste(rdsFilesFolder, "featurized" , fScheme, ".rds", sep = "");
+outFile            = paste("./"          , "out"        , fScheme, ".csv", sep = "");
 
 cat(as.character(Sys.time()),">> Reading training set features from", featureFile, "...\n");
 features = readRDS(featureFile);
@@ -28,6 +30,22 @@ cat(as.character(Sys.time()),">> Done\n");
 cat(as.character(Sys.time()),">> Reading feature ranking from", rankedFeaturesFile, "...\n");
 rankedFeatures = readRDS(rankedFeaturesFile);
 cat(as.character(Sys.time()),">> Done\n");
+
+rfmodelFile        = paste(rdsFilesFolder, "rfmodel"    , fScheme, ".rds", sep = "");
+cat(as.character(Sys.time()),">> Reading random forest model from", rfmodelFile, "...\n");
+rfmodel = readRDS(rfmodelFile);
+cat(as.character(Sys.time()),">> Done\n");
+
+if (is.null(featureCountList)) {
+  imp = rfmodel$importance[order(-rfmodel$importance[,3]),];
+  lastImpFeatureInd = which(imp[,3] <= 0)[1] - 1;
+  lastImpFeatureInd = lastImpFeatureInd - (lastImpFeatureInd %% 500)
+  featureCountList = seq(from = lastImpFeatureInd, to = 500, by = -500);
+}
+cat(as.character(Sys.time()),
+    ">> Searching from", featureCountList[1], "to",  
+    featureCountList[length(featureCountList)], "by -500\n"
+    );
 
 #
 # Balance the dataset (576+576) by undersampling the negative (larger) set

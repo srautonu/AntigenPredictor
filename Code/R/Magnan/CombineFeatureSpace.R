@@ -6,11 +6,13 @@ source('./combineFeatures.R');
 
 timestamp();
 
-fScheme = "_combBig";
+fScheme = "_comb";
 
-rankedFeaturesFile = paste("ff"             , fScheme, ".rds", sep = "");
-featureFile        = paste("featurized"     , fScheme, ".rds", sep = "");
-testFeatureFile    = paste("testFeaturized" , fScheme, ".rds", sep = "");
+RDSFolder = "RDSFiles/"
+
+rankedFeaturesFile = paste(RDSFolder, "ff"             , fScheme, ".rds", sep = "");
+featureFile        = paste(RDSFolder, "featurized"     , fScheme, ".rds", sep = "");
+testFeatureFile    = paste(RDSFolder, "testFeaturized" , fScheme, ".rds", sep = "");
 
 fSubSchemes = c("_PSF10","_nGrams", "_nGDip25");
 
@@ -39,7 +41,7 @@ fSubSchemes = c("_PSF10","_nGrams", "_nGDip25");
 
 cat(as.character(Sys.time()),">> Combining Training set features ...\n");
 if (!file.exists(featureFile)) {
-  fileNamePrefix = "featurized";
+  fileNamePrefix = paste0(RDSFolder,"featurized");
   features = combineFeatures(fSubSchemes, fileNamePrefix);
   saveRDS(features, featureFile);
   cat(as.character(Sys.time()),">> Done. Saved to ", featureFile, "\n");
@@ -48,13 +50,13 @@ if (!file.exists(featureFile)) {
   cat(as.character(Sys.time()),">> Done. (From cach file ", featureFile, ")\n");
 }
 
-# cat(as.character(Sys.time()),">> Combining Test set features ...\n");
-# if (!file.exists(testFeatureFile)) {
-#   fileNamePrefix = "testFeaturized";
-#   testFeatures = combineFeatures(fSubSchemes, fileNamePrefix);
-#   saveRDS(testFeatures, testFeatureFile);
-#   cat(as.character(Sys.time()),">> Done. Saved to ", testFeatureFile, "\n");
-# } else {
-#   testFeatures = readRDS(testFeatureFile);
-#   cat(as.character(Sys.time()),">> Done. (From cach file ", testFeatureFile, ")\n");
-# }
+cat(as.character(Sys.time()),">> Combining Test set features ...\n");
+if (!file.exists(testFeatureFile)) {
+  fileNamePrefix = paste0(RDSFolder, "testFeaturized");
+  testFeatures = combineFeatures(fSubSchemes, fileNamePrefix);
+  saveRDS(testFeatures, testFeatureFile);
+  cat(as.character(Sys.time()),">> Done. Saved to ", testFeatureFile, "\n");
+} else {
+  testFeatures = readRDS(testFeatureFile);
+  cat(as.character(Sys.time()),">> Done. (From cach file ", testFeatureFile, ")\n");
+}
