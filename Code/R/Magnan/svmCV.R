@@ -1,6 +1,8 @@
 
 svmCV <-
   function(formula, data, svmCost, cross, svmScale = TRUE) {
+    svmKernel = "linear";
+    
     N = length(data[, 1])
     folds = seq(from=1,to=N, by=round(N/cross))
     folds[cross+1] = N+1
@@ -9,12 +11,18 @@ svmCV <-
       trainFolds = data
       testFold = data[(folds[i]:(folds[i+1]-1)),]
       trainFolds = data[-(folds[i]:(folds[i+1]-1)),]
-      svmmodel = svm(formula, trainFolds, kernel = "linear", cost = svmCost, scale = svmScale)
+      svmmodel = svm(formula, trainFolds, kernel = svmKernel, cost = svmCost, scale = svmScale)
       
       svmpred = predict(svmmodel, testFold)
       predVector = c(predVector, as.numeric(svmpred))
       i = i + 1
     }
+
+    # Now generate the model on full dataset to find the no. of support vectors
+    # This can be used for model selection in. Lesser number of SVs will
+    # result in better generalization
+    svmmodel = svm(formula, data, kernel = svmKernel, cost = svmCost, scale = svmScale);
+    nSV = svmmodel$tot.nSV;
     
     dependentVar = all.vars(formula)[1];
     
@@ -25,13 +33,16 @@ svmCV <-
       acc = unlist(ROCR::performance(svmprediction,"acc")@y.values)[2]
       sensitivity = unlist(ROCR::performance(svmprediction,"sens")@y.values)[2];
       specificity = unlist(ROCR::performance(svmprediction,"spec")@y.values)[2];
+      precision   = unlist(ROCR::performance(svmprediction,"prec")@y.values)[2];
       mcc = unlist(ROCR::performance(svmprediction,"mat")@y.values)[2];
     
       return(list(
         "acc"  = acc,
         "sens" = sensitivity,
         "spec" = specificity,
-        "mcc"  = mcc
+        "mcc"  = mcc,
+        "prec"  = precision,
+        "nSV"  = nSV
         ))
     }
     else {
@@ -52,6 +63,7 @@ svmCV <-
       acc = unlist(ROCR::performance(svmprediction,"acc")@y.values)[2]
       sensitivity = unlist(ROCR::performance(svmprediction,"sens")@y.values)[2];
       specificity = unlist(ROCR::performance(svmprediction,"spec")@y.values)[2];
+      precision   = unlist(ROCR::performance(svmprediction,"prec")@y.values)[2];
       mcc = unlist(ROCR::performance(svmprediction,"mat")@y.values)[2];
       
       return(list(
@@ -62,7 +74,9 @@ svmCV <-
         "acc" = acc,
         "sens" = sensitivity,
         "spec" = specificity,
-        "mcc" = mcc
+        "mcc" = mcc,
+        "prec"  = precision,
+        "nSV" = nSV
       ))
     }
   }

@@ -8,17 +8,19 @@ timestamp();
 
 set.seed(10);
 
-DoRegression = TRUE;
-svmCostList = c(0.3, 1, 3, 10, 30, 100);
-featureCountList = seq(from=2800, to=1500, by=-50);
+#svmCostList = c(0.3, 1, 3, 10, 30, 100);
+svmCostList = c(1);
+featureCountList = seq(from=5, to=600, by=1);
 
 # 10 fold CV
 nFolds = 10
 
-fScheme = "_comb";
+fScheme = "_heu_comb";
 
-rankedFeaturesFile = paste("ff"         , fScheme, ".rds", sep = "");
-featureFile        = paste("featurized" , fScheme, ".rds", sep = "");
+RDSFolder          = "RDSFiles/"
+
+rankedFeaturesFile = paste(RDSFolder, "ff_SvmRFE2"         , fScheme, ".rds", sep = "");
+featureFile        = paste(RDSFolder, "featurized" , fScheme, ".rds", sep = "");
 outFile            = paste("out"        , fScheme, ".csv", sep = "");
 
 cat(as.character(Sys.time()),">> Reading training set features from", featureFile, "...\n");
@@ -56,12 +58,9 @@ cat(as.character(Sys.time()),">> Entering cross validation. Folds = ", nFolds, "
 features = featurefiltering(features, rankedFeatures, max(featureCountList));
 
 # For regression study, we need to 'unfactor' the dependent var.
-#
-if (DoRegression) {
-  # When converting from factor to numeric, Antigens becomes 2 and Non-antigens becomes 1.
-  # So we need to deduct 1.
-  features$protection = as.numeric(features$protection) - 1;
-}
+# When converting from factor to numeric, Antigens becomes 2 and Non-antigens becomes 1.
+# So we need to deduct 1.
+features$protection = as.numeric(features$protection) - 1;
 
 for (maxFeatureCount in featureCountList) 
 {
@@ -70,15 +69,21 @@ for (maxFeatureCount in featureCountList)
   for (svmC in svmCostList) 
   {
     perf = svmCV(protection ~ ., trainingSet, svmCost = svmC, cross = nFolds);
-    if (DoRegression) {
-      cat(maxFeatureCount, ",", svmC, ",", perf$auc,  ",",  perf$threshold, ",", perf$acc, ",", perf$spec, ",", perf$sens, ",", perf$mcc);
-      accData = rbind(accData, c(maxFeatureCount, svmC, perf$auc, perf$threshold, perf$acc, perf$spec, perf$sens, perf$mcc));
-    } else {
-      
-      cat(maxFeatureCount, ",", svmC, ",", perf$acc, ",", perf$sens, ",", perf$spec, ",", perf$mcc);
-      accData = rbind(accData, c(maxFeatureCount, svmC, perf$acc, perf$sens, perf$spec, perf$mcc));
-    }
     
+    cat(
+        maxFeatureCount, ",", 
+        svmC, ",", 
+        round(perf$auc, 2),  ",",  
+        round(perf$threshold, 2), ",", 
+        round(perf$acc, 2), ",", 
+        round(perf$sens, 2), ",", 
+        round(perf$spec, 2), ",", 
+        round(perf$prec, 2),  ",", 
+        round(perf$mcc, 2), ",", 
+        round(perf$nSV, 2)
+        );
+    accData = rbind(accData, c(maxFeatureCount, svmC, perf$auc, perf$threshold, perf$acc, perf$sens, perf$spec, perf$prec, perf$mcc, perf$nSV));
+    colnames(accData) = c("nF", "Cost", "AUCROC", "Threshold", "Accuracy", "Sensitivity", "Specificity", "Precision", "MCC", "nSV");
     write.csv(accData, outFile);
     
     if (is.null(bestPerf) || bestPerf$acc < perf$acc) {
@@ -95,12 +100,10 @@ for (maxFeatureCount in featureCountList)
 }
 
 cat("Best Result for <nF, C> = ", bestParams$maxFeatureCount, bestParams$svmC, "\n");
-if (DoRegression) {
-  cat("AUCROC      : ", bestPerf$auc, "\n");
-  cat("Threshold   : ", bestPerf$threshold, "\n");
-}
-
+cat("AUCROC      : ", bestPerf$auc, "\n");
+cat("Threshold   : ", bestPerf$threshold, "\n");
 cat("Accuracy    : ", bestPerf$acc, "\n");
 cat("Sensitivity : ", bestPerf$sens, "\n");
 cat("Specificity : ", bestPerf$spec, "\n");
 cat("MCC         : ", bestPerf$mcc, "\n");
+cat("nSV         : ", bestPerf$nSV, "\n");

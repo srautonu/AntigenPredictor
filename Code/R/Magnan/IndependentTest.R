@@ -7,16 +7,18 @@ timestamp();
 
 set.seed(10);
 
-fScheme = "_PSF10";
-maxFeatureCount = 800;
-svmC = 0.3;
+fScheme = "_heu_comb";
+maxFeatureCount = 91;
+svmC = 10;
 resultsFileName = "IndependentTestResults.csv"
 
+RDSFolder          = "RDSFiles/"
+
 # File names #
-rankedFeaturesFile = paste("ff"            , fScheme, ".rds", sep = "");
-featureFile        = paste("featurized"    , fScheme, ".rds", sep = "");
-testFeatureFile    = paste("testFeaturized", fScheme, ".rds", sep = "");
-svmFile            = paste("svm"           , fScheme, ".rds", sep = "");
+rankedFeaturesFile = paste(RDSFolder, "ff_SvmRFE2"            , fScheme, ".rds", sep = "");
+featureFile        = paste(RDSFolder, "featurized"    , fScheme, ".rds", sep = "");
+testFeatureFile    = paste(RDSFolder, "testFeaturized", fScheme, ".rds", sep = "");
+svmFile            = paste("svm_", maxFeatureCount, "_" , svmC, fScheme, ".rds", sep = "");
 
 cat(as.character(Sys.time()),">> Loading feature ranking ...\n");
 rankedFeatures = readRDS(rankedFeaturesFile);
@@ -29,6 +31,15 @@ if (!file.exists(svmFile)) {
   features$ID = NULL;
   features$Type = NULL;
   features$protection = as.numeric(features$protection) - 1;
+  
+  #
+  # Balance the dataset (576+576) by undersampling the negative (larger) set
+  #
+  positiveSet = features[sample(1:576),]
+  negativeSetInd = sample(577:length(features[,1]))[1:576]
+  negativeSetInd = negativeSetInd[order(negativeSetInd)]
+  features = rbind(features[1:576,], features[negativeSetInd,])
+  
   # random shuffle of features
   features <- features[sample(nrow(features)),]
   cat(as.character(Sys.time()),">> Training set features loaded from", featureFile, "\n");
@@ -78,7 +89,7 @@ for (threshold in seq(from=0.01, to=0.99, by=0.01)) {
 }
 
 colnames(itData) = c("Threshold", "Accuracy", "Sensitivity", "Specificity", "MCC", "Precision");
-write.csv(t(itData), resultsFileName);
+write.csv(itData, resultsFileName);
 cat(as.character(Sys.time()),">> Done.\n");
 
 cat(as.character(Sys.time()),">> Calculating enrichment ...\n");
