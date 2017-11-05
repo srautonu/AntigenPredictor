@@ -77,7 +77,7 @@ for (maxFeatureCount in featureCountList)
 {
   trainingSet = featurefiltering(features, rankedFeatures, maxFeatureCount);
 
-  perf = svmCV(protection ~ ., trainingSet, svmCost = 1, cross = nFolds);
+  perf = svmCV(protection ~ ., trainingSet, cross = nFolds, kernel = "linear", svmCost = 1);
   
   AUCROC = perf$auc;
   df = data.frame(

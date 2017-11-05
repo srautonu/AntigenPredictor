@@ -8,8 +8,11 @@ timestamp();
 set.seed(10);
 
 fScheme = "_heu_comb";
-maxFeatureCount = 91;
-svmC = 10;
+maxFeatureCount = 587;
+svmC = 1;
+svmNu = 0.1;
+#svmType = "nu-regression";
+
 resultsFileName = "IndependentTestResults.csv"
 
 RDSFolder          = "RDSFiles/"
@@ -19,6 +22,7 @@ rankedFeaturesFile = paste(RDSFolder, "ff_SvmRFE2"            , fScheme, ".rds",
 featureFile        = paste(RDSFolder, "featurized"    , fScheme, ".rds", sep = "");
 testFeatureFile    = paste(RDSFolder, "testFeaturized", fScheme, ".rds", sep = "");
 svmFile            = paste("svm_", maxFeatureCount, "_" , svmC, fScheme, ".rds", sep = "");
+svmFile = "rf_587_heu_comb.rds"
 
 cat(as.character(Sys.time()),">> Loading feature ranking ...\n");
 rankedFeatures = readRDS(rankedFeaturesFile);
@@ -47,7 +51,8 @@ if (!file.exists(svmFile)) {
   trainingSet = featurefiltering(features, rankedFeatures, maxFeatureCount);
   cat(as.character(Sys.time()),">> Training set Features filtered.\n");
   
-  svmModel = svm(protection ~ ., trainingSet, kernel = "linear", cost = svmC, scale = TRUE);
+  svmModel = svm(protection ~ ., trainingSet, kernel = "linear", 
+                 type = svmType, cost = svmC, nu = svmNu);
   saveRDS(svmModel, svmFile);
   cat(as.character(Sys.time()),">> Model built.\n");
 } else {

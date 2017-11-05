@@ -7,13 +7,9 @@ source('./learnWithCV.R')
 timestamp();
 
 set.seed(10);
+DoBalancing = TRUE;
 
-#svmCostList = c(0.3, 1, 3, 10, 30, 100);
-svmCostList = c(1);
-svmNu = 0.1;
-svmType = "nu-regression";
-#featureCountList = seq(from=10, to=600, by=10);
-featureCountList = c(587);
+featureCountList = seq(from=10, to=600, by=10);
 
 # 10 fold CV
 nFolds = 10
@@ -39,13 +35,16 @@ if (nFolds < 0) {
   nFolds = length(features[,1])
 }
 
-#
-# Balance the dataset (576+576) by undersampling the negative (larger) set
-#
-positiveSet = features[sample(1:576),]
-negativeSetInd = sample(577:length(features[,1]))[1:576]
-negativeSetInd = negativeSetInd[order(negativeSetInd)]
-features = rbind(features[1:576,], features[negativeSetInd,])
+if (DoBalancing) {
+
+  #
+  # Balance the dataset (576+576) by undersampling the negative (larger) set
+  #
+  positiveSet = features[sample(1:576),]
+  negativeSetInd = sample(577:length(features[,1]))[1:576]
+  negativeSetInd = negativeSetInd[order(negativeSetInd)]
+  features = rbind(features[1:576,], features[negativeSetInd,])
+}
 
 # random shuffle of features
 features <- features[sample(nrow(features)),]
@@ -69,48 +68,61 @@ for (maxFeatureCount in featureCountList)
 {
   trainingSet = featurefiltering(features, rankedFeatures, maxFeatureCount);
 
-  for (svmC in svmCostList) 
-  {
-    # perf = learnWithCV(protection ~ ., trainingSet, cross = nFolds, "svm", 
-    #              kernel = "linear", svmCost = svmC, type = svmType, nu = svmNu);
-    perf = learnWithCV(protection ~ ., trainingSet, cross = nFolds, "rf");
+  perf = learnWithCV(protection ~ ., trainingSet, cross = nFolds, "rf");
     
-    #nSV = perf$model$tot.nSV;
-    
-    cat(
-        maxFeatureCount, ",", 
-        svmC, ",", 
-        round(perf$auc, 2),  ",",  
-        round(perf$threshold, 2), ",", 
-        round(perf$acc, 2), ",", 
-        round(perf$sens, 2), ",", 
-        round(perf$spec, 2), ",", 
-        round(perf$prec, 2),  ",", 
-        round(perf$mcc, 2), ","
-        #round(nSV, 2)
-        );
-    accData = rbind(accData, c(maxFeatureCount, svmC, perf$auc, perf$threshold, perf$acc, perf$sens, perf$spec, perf$prec, perf$mcc, nSV));
-    colnames(accData) = c("nF", "Cost", "AUCROC", "Threshold", "Accuracy", "Sensitivity", "Specificity", "Precision", "MCC", "nSV");
-    write.csv(accData, outFile);
-    
-    if (is.null(bestPerf) || bestPerf$acc < perf$acc) {
-      bestPerf = perf;
-      bestParams = list(
-        "maxFeatureCount" = maxFeatureCount,
-        "svmC" = svmC
+  cat(
+      maxFeatureCount,
+      ",", round(perf$AUCROC, 2),
+      ",", round(perf$AUCPR, 2),
+      ",", round(perf$acc, 2),
+      ",", round(perf$sens, 2),
+      ",", round(perf$spec, 2),
+      ",", round(perf$prec, 2),
+      ",", round(perf$f1, 2),
+      ",", round(perf$mcc, 2)
+      );
+  accData = rbind(
+    accData, 
+    c(
+      maxFeatureCount 
+      , perf$AUCROC
+      , perf$AUCPR
+      , perf$acc
+      , perf$sens
+      , perf$spec
+      , perf$prec
+      , perf$f1
+      , perf$mcc
       )
-      cat(",<-- BEST");
-    }
-    
-    cat("\n");
+    );
+  colnames(accData) = c(
+    "nF"
+    , "AUCROC"
+    , "AUCPR"
+    , "Accuracy"
+    , "Sensitivity"
+    , "Specificity"
+    , "Precision"
+    , "F1"
+    , "MCC"
+    );
+  write.csv(accData, outFile);
+  
+  if (is.null(bestPerf) || bestPerf$mcc < perf$mcc) {
+    bestPerf = perf;
+    bestParams = list(
+      "maxFeatureCount" = maxFeatureCount
+    )
+    cat(",<-- BEST");
   }
+  
+  cat("\n");
 }
 
-cat("Best Result for <nF, C> = ", bestParams$maxFeatureCount, bestParams$svmC, "\n");
+cat("Best Result for nF = ", bestParams$maxFeatureCount, "\n");
 cat("AUCROC      : ", bestPerf$auc, "\n");
 cat("Threshold   : ", bestPerf$threshold, "\n");
 cat("Accuracy    : ", bestPerf$acc, "\n");
 cat("Sensitivity : ", bestPerf$sens, "\n");
 cat("Specificity : ", bestPerf$spec, "\n");
 cat("MCC         : ", bestPerf$mcc, "\n");
-#cat("nSV         : ", bestPerf$model$tot.nSV, "\n");
