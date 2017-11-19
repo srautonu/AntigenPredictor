@@ -62,7 +62,8 @@ public class FastaConverter {
                     if (null != strInputLine) {
                         // reset id/sequence for the upcoming one
                         strSequence = "";
-                        strId = strInputLine.split("\\|")[1];
+                        //strId = strInputLine.split("\\|")[1];
+                        strId = strInputLine.split(">")[1];
                     }
                 } else {
                     strSequence += strInputLine;
