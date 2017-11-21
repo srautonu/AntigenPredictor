@@ -103,5 +103,7 @@ learn <-
     } else if (learner == "rf") {
       model = randomForest(formula, data, ...);
     }
+    
+    return(model);
   }
     
