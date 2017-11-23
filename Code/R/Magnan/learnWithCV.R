@@ -3,6 +3,8 @@ require("randomForest");
 require("ROCR");
 require("pracma");
 
+source("learn.R");
+
 learnWithCV <-
   function(formula, data, cross, learner, ...) {
     N = length(data[, 1])
@@ -95,15 +97,3 @@ learnWithCV <-
       ))
     }
   }
-
-learn <-
-  function(formula, data, learner, ...) {
-    if (learner == "svm") {
-      model = svm(formula, data, ...);
-    } else if (learner == "rf") {
-      model = randomForest(formula, data, ...);
-    }
-    
-    return(model);
-  }
-    

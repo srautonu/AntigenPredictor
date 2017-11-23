@@ -1,18 +1,21 @@
 library(e1071)
 library(ROCR)
+library(randomForest)
 
 source('featurefiltering.R');
 
 timestamp();
 
-set.seed(20);
+fScheme         = "_heu_comb";
+maxFeatureCount = 500;
+seed            = 10;
+DoBalancing     = TRUE;
 
-fScheme = "_heu_comb";
-maxFeatureCount = 340;
-DoBalancing = TRUE;
+set.seed(seed);
 
 itPerfFileName       = "IT_Perf.csv";
 itEnrichmentFileName = "IT_Enrichment.csv";
+
 
 RDSFolder          = "RDSFiles/"
 
@@ -20,14 +23,15 @@ RDSFolder          = "RDSFiles/"
 rankedFeaturesFile = paste(RDSFolder, "ff_SvmRFE2"            , fScheme, ".rds", sep = "");
 featureFile        = paste(RDSFolder, "featurized"    , fScheme, ".rds", sep = "");
 testFeatureFile    = paste(RDSFolder, "testFeaturized", fScheme, ".rds", sep = "");
-rfFile             = paste("rf_", maxFeatureCount     , fScheme, ".rds", sep = "");
+#rfFile             = paste("rf_", maxFeatureCount, fScheme, ".rds", sep = "");
+rfFile             = paste("rfmodel_", maxFeatureCount, ".rds", sep = "");
 
 cat(as.character(Sys.time()),">> Loading feature ranking ...\n");
 rankedFeatures = readRDS(rankedFeaturesFile);
 cat(as.character(Sys.time()),">> Done ( from cached file:", rankedFeaturesFile, ")\n");
 
 if (!file.exists(rfFile)) {
-  cat(as.character(Sys.time()),">> Building RF model for maxFeatureCount = ", maxFeatureCount, " ...\n");
+  cat(as.character(Sys.time()),">> Building RF model for <nF, seed> = <", maxFeatureCount, ",", seed, "> ...\n");
 
   features = readRDS(featureFile);
   features$ID = NULL;
