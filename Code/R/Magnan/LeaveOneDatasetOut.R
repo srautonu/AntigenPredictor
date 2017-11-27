@@ -7,10 +7,10 @@ timestamp();
 
 set.seed(10);
 
-TestSetType = "BRU";
+TestSetType = "TUB";
 
-maxFeatureCount = 500;
-BalanceTrainingSet = FALSE;
+maxFeatureCount = 490;
+BalanceTrainingSet = TRUE;
 
 fScheme = "_heu_comb";
 
@@ -51,12 +51,16 @@ for (seed in seq(from=10, to=50, by=10))
   if (BalanceTrainingSet) {
   
     #
-    # Balance the training set by undersampling the negative (larger) set
+    # Balance the training set by undersampling the larger set
     #
-    lastPositiveIndex = sum(as.numeric(trainingSet$protection));
-    negativeSetInd = sample((lastPositiveIndex+1):length(trainingSet[,1]))[1:lastPositiveIndex]
-    negativeSetInd = negativeSetInd[order(negativeSetInd)]
-    curTrainingSet = rbind(trainingSet[1:lastPositiveIndex,], trainingSet[negativeSetInd,])
+    nPositive = sum(as.numeric(trainingSet$protection));
+    nNegative = length(trainingSet[,1]) - nPositive;
+    nBalanced = min(nPositive, nNegative);
+    
+    positiveSetInd = sample(1:nPositive)[1:nBalanced];
+    negativeSetInd = sample((nPositive+1):length(trainingSet[,1]))[1:nBalanced];
+
+    curTrainingSet = rbind(trainingSet[positiveSetInd,], trainingSet[negativeSetInd,])
   } else {
     curTrainingSet =  trainingSet;
   }
@@ -72,18 +76,22 @@ for (seed in seq(from=10, to=50, by=10))
     negativeSetInd = sample((lastPositiveIndex+1):length(testSet[,1]))[1:lastPositiveIndex]
     negativeSetInd = negativeSetInd[order(negativeSetInd)]
     curTestSet = rbind(testSet[1:lastPositiveIndex,], testSet[negativeSetInd,])
+  } else {
+    curTestSet = testSet;
   }
 
   cat(as.character(Sys.time()),">> Entering cross validation. TestFold = ", TestSetType, " ...\n");
 
   model = learn(protection ~ ., curTrainingSet, "rf");
   mlPred = predict(model, curTestSet);
-  mlPrediction = prediction(as.numeric(mlPred), curTestSet$protection);
-  
+
   # Use a fixed threshold of 0.5
   threshold = 0.5;
   
-  mlPrediction = prediction(as.numeric(mlPred >= threshold), curTestSet$protection);
+  mlPrediction = prediction(
+    as.numeric(mlPred >= threshold),
+    factor(curTestSet$protection, c(0,1))
+    );
   acc = unlist(ROCR::performance(mlPrediction,"acc")@y.values)[2]
   sens = unlist(ROCR::performance(mlPrediction,"sens")@y.values)[2];
   spec = unlist(ROCR::performance(mlPrediction,"spec")@y.values)[2];

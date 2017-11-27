@@ -7,7 +7,7 @@ source('featurefiltering.R');
 timestamp();
 
 fScheme         = "_heu_comb";
-maxFeatureCount = 500;
+maxFeatureCount = 490;
 seed            = 10;
 DoBalancing     = TRUE;
 
