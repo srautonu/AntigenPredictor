@@ -80,7 +80,7 @@ public class FastaGenerator {
                 continue;
 
             try (BufferedWriter writerFASTA = new BufferedWriter(new FileWriter(strProtein + ".fasta"))) {
-                writerFASTA.write(strFASTA);
+                writerFASTA.write(strFASTA + "\r\n");
             } catch (IOException e) {
                 Logger.Log(e);
             }
