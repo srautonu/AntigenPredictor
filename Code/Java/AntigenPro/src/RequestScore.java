@@ -4,10 +4,10 @@ import java.util.*;
 
 import java.nio.charset.StandardCharsets;
 
-public class Main {
+public class RequestScore {
 
     public static Map<String, String> getProteinSequences(String strCSVFile) {
-        Map<String, String> map_Protein = new Hashtable<String, String>();
+        Map<String, String> map_Protein = new LinkedHashMap<String, String>();
         try (BufferedReader readerCSV = new BufferedReader(new FileReader(strCSVFile))) {
             String strInputLine;
             String strId;
@@ -25,7 +25,7 @@ public class Main {
                 map_Protein.put(strId, strSequence);
             }
         } catch (IOException e) {
-            System.out.println(e);
+            Logger.Log(e);
         }
         return map_Protein;
     }
@@ -35,7 +35,7 @@ public class Main {
 
         for (Map.Entry<String, String> entry : map_Protein.entrySet()) {
 
-            System.out.println("Preparing request for " + entry.getKey() + " ...");
+            Logger.Log("Preparing request for " + entry.getKey() + " ...");
 
             URL url = new URL("http://scratch.proteomics.ics.uci.edu/cgi-bin/new_server/sql_predict.cgi");
             URLConnection con = url.openConnection();
@@ -63,7 +63,7 @@ public class Main {
             http.setFixedLengthStreamingMode(length);
             http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
 
-            System.out.println("Connecting ...");
+            Logger.Log("Connecting ...");
             http.connect();
             try (OutputStream os = http.getOutputStream()) {
                 os.write(out);
@@ -74,10 +74,10 @@ public class Main {
                 strResponse = new String(reader.readAllBytes());
             }
 
-            System.out.println("Disconnecting ...");
+            Logger.Log("Disconnecting ...");
             http.disconnect();
-            System.out.println("Going to sleep for 30 seconds ...");
-            Thread.sleep(30000);
+            Logger.Log("Going to sleep for 60 seconds ...");
+            Thread.sleep(60000);
         }
     }
 }
