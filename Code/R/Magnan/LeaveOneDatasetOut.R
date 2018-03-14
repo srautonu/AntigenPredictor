@@ -12,7 +12,7 @@ TestSetType = "TUB";
 maxFeatureCount = 490;
 BalanceTrainingSet = TRUE;
 
-fScheme = "_heu_comb";
+fScheme = "_comb";
 
 RDSFolder          = "RDSFiles/"
 

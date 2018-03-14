@@ -7,7 +7,7 @@ timestamp();
 
 set.seed(10);
 
-fScheme = "_heu_comb";
+fScheme = "_comb";
 featureCountList = seq(from=10, to=600, by=10);
 DoBalancing = FALSE;
 

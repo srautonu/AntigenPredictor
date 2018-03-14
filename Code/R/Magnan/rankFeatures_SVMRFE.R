@@ -7,7 +7,7 @@ timestamp();
 
 set.seed(10);
 
-fScheme = "_heu_comb";
+fScheme = "_comb";
 
 RDSFolder = "RDSFiles/"
 
