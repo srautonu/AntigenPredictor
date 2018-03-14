@@ -6,7 +6,7 @@ import java.util.*;
  */
 public class FastaGenerator {
     public static Map<String, String> getProteinFASTAs(String strCSVFile) {
-        Map<String, String> map_Protein = new Hashtable<String, String>();
+        Map<String, String> map_Protein = new LinkedHashMap<String, String>();
         try (BufferedReader readerCSV = new BufferedReader(new FileReader(strCSVFile))) {
             String strInputLine;
             String strId;
@@ -31,26 +31,78 @@ public class FastaGenerator {
         return map_Protein;
     }
 
+    private static void writePerIDFASTA(
+        Collection<String> lst_Protein,
+        Map<String, String> map_Protein
+    )
+    {
+        for (String strProtein : lst_Protein) {
+            String strFASTA = null;
+            try {
+                strFASTA = map_Protein.get(strProtein);
+            } catch (NullPointerException e) {
+
+            }
+
+            if (null == strFASTA || strFASTA.isEmpty())
+                continue;
+
+            try (BufferedWriter writerFASTA = new BufferedWriter(new FileWriter(strProtein + ".fasta"))) {
+                writerFASTA.write(strFASTA + "\r\n");
+            } catch (IOException e) {
+                Logger.Log(e);
+            }
+        }
+    }
+
+    private static void writeCombinedFASTA(
+            Collection<String> lst_Protein,
+            Map<String, String> map_Protein
+
+    )
+    {
+        try (BufferedWriter writerFASTA = new BufferedWriter(new FileWriter("combined.fasta"))) {
+            for (String strProtein : lst_Protein) {
+                String strFASTA = null;
+                try {
+                    strFASTA = map_Protein.get(strProtein);
+                } catch (NullPointerException e) {
+
+                }
+
+                if (null == strFASTA || strFASTA.isEmpty())
+                    continue;
+
+                writerFASTA.write(strFASTA + "\r\n");
+            }
+        } catch (IOException e) {
+            Logger.Log(e);
+        }
+    }
+
     public static void main(String[] args) {
         Map<String, String> map_Protein;
         Collection<String> lst_Protein = new ArrayList<String>();
 
         String strCSVFile;
         String strSubsetFile;
+        boolean fPerIdFASTA = false;
 
         if (args.length < 1) {
             //
             // Convertion from CSV file into FASTA format
             // <CSV_File> The first 2 columns must contain the ID and sequence
+            // COMBINED/PER_ID - Generate combined or per id fasta file(s). Default is combined.
             // <SubsetIDs_File> optional file specifying the proteins of interest. If not specified
             // then all proteins are output
             //
-            System.out.println("Usage: java FastaGenerator <CSV_File> [<SubsetIDs_File>]");
+            System.out.println("Usage: java FastaGenerator <CSV_File> [COMBINED/PER_ID] [<SubsetIDs_File>]");
             return;
         }
 
         strCSVFile = args[0];
-        strSubsetFile = (args.length >= 2 ? args[1] : "");
+        fPerIdFASTA = (args.length >= 2 &&  0 == args[1].compareToIgnoreCase("PER_ID"));
+        strSubsetFile = (args.length >= 3 ? args[2] : "");
 
         if (!strSubsetFile.isEmpty()) {
             try (BufferedReader readerIds = new BufferedReader(new FileReader(strSubsetFile))) {
@@ -68,22 +120,10 @@ public class FastaGenerator {
             lst_Protein = map_Protein.keySet();
         }
 
-        for (String strProtein : lst_Protein) {
-            String strFASTA = null;
-            try {
-                strFASTA = map_Protein.get(strProtein);
-            } catch (NullPointerException e) {
-
-            }
-
-            if (null == strFASTA || strFASTA.isEmpty())
-                continue;
-
-            try (BufferedWriter writerFASTA = new BufferedWriter(new FileWriter(strProtein + ".fasta"))) {
-                writerFASTA.write(strFASTA + "\r\n");
-            } catch (IOException e) {
-                Logger.Log(e);
-            }
+        if (fPerIdFASTA) {
+            writePerIDFASTA(lst_Protein, map_Protein);
+        } else {
+            writeCombinedFASTA(lst_Protein, map_Protein);
         }
     }
 }
