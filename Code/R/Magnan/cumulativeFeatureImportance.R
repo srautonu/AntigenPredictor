@@ -12,13 +12,18 @@ nGDip = 0;
 PSF   = 0;
 
 # Uncomment if we take all features with positive importance score
-# maxFeatures = min(which (rankedt[,impindex] < 0));
+# maxFeatures = max(which (rankedt[,impindex] > 0));
 # cat("Count of features with positive importance:", maxFeatures,"\n");
+
+# Uncomment if we take all features with non-negative importance score
+# maxFeatures = max(which (rankedt[,impindex] >= 0));
+# cat("Count of features with non-negative importance:", maxFeatures,"\n");
 
 # Uncomment when considering all features
 maxFeatures = length(rankedt[,1]);
+cat("Count of features:", maxFeatures,"\n");
 
-maxFeatures = 9936
+#maxFeatures = 7500;
 for(i in 1:maxFeatures){
   if(gregexpr(pattern = "C_", cname[i])[[1]][1]>0){
     nGram = nGram + rankedt[i,impindex]
