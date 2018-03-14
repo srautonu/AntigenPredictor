@@ -1,19 +1,21 @@
 library(e1071)
 library(ROCR)
+library(randomForest)
 
 source('featurefiltering.R');
 
 timestamp();
 
-set.seed(10);
+fScheme         = "_comb";
+maxFeatureCount = 490;
+seed            = 10;
+DoBalancing     = TRUE;
 
-fScheme = "_heu_comb";
-maxFeatureCount = 587;
-svmC = 1;
-svmNu = 0.1;
-#svmType = "nu-regression";
+set.seed(seed);
 
-resultsFileName = "IndependentTestResults.csv"
+itPerfFileName       = "IT_Perf.csv";
+itEnrichmentFileName = "IT_Enrichment.csv";
+
 
 RDSFolder          = "RDSFiles/"
 
@@ -21,28 +23,30 @@ RDSFolder          = "RDSFiles/"
 rankedFeaturesFile = paste(RDSFolder, "ff_SvmRFE2"            , fScheme, ".rds", sep = "");
 featureFile        = paste(RDSFolder, "featurized"    , fScheme, ".rds", sep = "");
 testFeatureFile    = paste(RDSFolder, "testFeaturized", fScheme, ".rds", sep = "");
-svmFile            = paste("svm_", maxFeatureCount, "_" , svmC, fScheme, ".rds", sep = "");
-svmFile = "rf_587_heu_comb.rds"
+#rfFile             = paste("rf_", maxFeatureCount, fScheme, ".rds", sep = "");
+rfFile             = paste("rfmodel_", maxFeatureCount, ".rds", sep = "");
 
 cat(as.character(Sys.time()),">> Loading feature ranking ...\n");
 rankedFeatures = readRDS(rankedFeaturesFile);
 cat(as.character(Sys.time()),">> Done ( from cached file:", rankedFeaturesFile, ")\n");
 
-if (!file.exists(svmFile)) {
-  cat(as.character(Sys.time()),">> Building SVM model for <maxFeatureCount, svmC> = <", maxFeatureCount, ", ", svmC, "> ...\n");
+if (!file.exists(rfFile)) {
+  cat(as.character(Sys.time()),">> Building RF model for <nF, seed> = <", maxFeatureCount, ",", seed, "> ...\n");
 
   features = readRDS(featureFile);
   features$ID = NULL;
   features$Type = NULL;
   features$protection = as.numeric(features$protection) - 1;
   
-  #
-  # Balance the dataset (576+576) by undersampling the negative (larger) set
-  #
-  positiveSet = features[sample(1:576),]
-  negativeSetInd = sample(577:length(features[,1]))[1:576]
-  negativeSetInd = negativeSetInd[order(negativeSetInd)]
-  features = rbind(features[1:576,], features[negativeSetInd,])
+  if (DoBalancing) {
+    #
+    # Balance the dataset (576+576) by undersampling the negative (larger) set
+    #
+    positiveSet = features[sample(1:576),]
+    negativeSetInd = sample(577:length(features[,1]))[1:576]
+    negativeSetInd = negativeSetInd[order(negativeSetInd)]
+    features = rbind(features[1:576,], features[negativeSetInd,])
+  }
   
   # random shuffle of features
   features <- features[sample(nrow(features)),]
@@ -51,16 +55,13 @@ if (!file.exists(svmFile)) {
   trainingSet = featurefiltering(features, rankedFeatures, maxFeatureCount);
   cat(as.character(Sys.time()),">> Training set Features filtered.\n");
   
-  svmModel = svm(protection ~ ., trainingSet, kernel = "linear", 
-                 type = svmType, cost = svmC, nu = svmNu);
-  saveRDS(svmModel, svmFile);
+  rfModel = randomForest(protection ~ ., trainingSet);
+  saveRDS(rfModel, rfFile);
   cat(as.character(Sys.time()),">> Model built.\n");
 } else {
-  cat(as.character(Sys.time()),">> Loading SVM model from ", svmFile, " ... \n");
-  svmModel = readRDS(svmFile);
-  maxFeatureCount = length(svmModel$SV[1,]);
-  svmC = svmModel$cost;
-  cat(as.character(Sys.time()),">> Done.  <maxFeatureCount, svmC> = <", maxFeatureCount, ", ", svmC, ">\n");
+  cat(as.character(Sys.time()),">> Loading RF model from ", rfFile, " ... \n");
+  rfModel = readRDS(rfFile);
+  cat(as.character(Sys.time()),">> Done.\n");
 }
 
 cat(as.character(Sys.time()),">> Loading Test set features ...\n");
@@ -75,36 +76,44 @@ testSet = featurefiltering(features, rankedFeatures, maxFeatureCount);
 cat(as.character(Sys.time()),">> Test set Features filtered.\n");
 
 cat(as.character(Sys.time()),">> Predicting ...\n");
-svmpred = predict(svmModel, testSet);
-svmprediction = prediction(svmpred, testSet$protection);
+rfPred = predict(rfModel, testSet);
+rfPrediction = prediction(rfPred, testSet$protection);
 cat(as.character(Sys.time()),">> Done.\n");
 
-cat(as.character(Sys.time()),">> Recording performance in ", resultsFileName, "  ...\n");
-itData = data.frame(matrix(ncol = 5, nrow = 0))
-for (threshold in seq(from=0.01, to=0.99, by=0.01)) {
+cat(as.character(Sys.time()),">> Recording performance in ", itPerfFileName, "  ...\n");
+itPerf = data.frame(matrix(ncol = 6, nrow = 0))
+for (threshold in seq(from=0.1, to=0.9, by=0.01)) {
 
-  svmprediction = prediction(as.numeric(svmpred >= threshold), testSet$protection);
-  acc  = unlist(ROCR::performance(svmprediction,"acc")@y.values)[2];
-  sens = unlist(ROCR::performance(svmprediction,"sens")@y.values)[2];
-  spec = unlist(ROCR::performance(svmprediction,"spec")@y.values)[2];
-  mcc  = unlist(ROCR::performance(svmprediction,"mat")@y.values)[2];
-  prec = unlist(ROCR::performance(svmprediction,"prec")@y.values)[2];
+  rfPrediction = prediction(as.numeric(rfPred >= threshold), testSet$protection);
+  acc  = unlist(ROCR::performance(rfPrediction,"acc")@y.values)[2];
+  sens = unlist(ROCR::performance(rfPrediction,"sens")@y.values)[2];
+  spec = unlist(ROCR::performance(rfPrediction,"spec")@y.values)[2];
+  mcc  = unlist(ROCR::performance(rfPrediction,"mat")@y.values)[2];
+  prec = unlist(ROCR::performance(rfPrediction,"prec")@y.values)[2];
 
-  itData = rbind(itData, c(threshold, acc, sens, spec, mcc, prec));
+  itPerf = rbind(itPerf, c(threshold, acc, sens, spec, mcc, prec));
 }
 
-colnames(itData) = c("Threshold", "Accuracy", "Sensitivity", "Specificity", "MCC", "Precision");
-write.csv(itData, resultsFileName);
+colnames(itPerf) = c("Threshold", "Accuracy", "Sensitivity", "Specificity", "MCC", "Precision");
+write.csv(itPerf, itPerfFileName);
 cat(as.character(Sys.time()),">> Done.\n");
 
 cat(as.character(Sys.time()),">> Calculating enrichment ...\n");
-sortOrder = order(-svmpred);
+sortOrder = order(-rfPred);
 
-#for (rank in c(2,5,10,25)) {
+cat(as.character(Sys.time()),">> Recording enrichment in ", itEnrichmentFileName, "  ...\n");
+itEnrichment = data.frame(matrix(ncol = 2, nrow = 0))
 for (rank in seq(from=1, to=100, by=1)) {
 
   topRanked = round(rank * length(testSet[,1]) / 100, 0);
   num = sum(testSet[sortOrder[1:topRanked],"protection"])/topRanked;
   den = sum(testSet$protection) / length(testSet[,1]);
-  cat(round(num / den, 1), "\n")
+  enrichment = round(num / den, 1);
+
+  itEnrichment = rbind(itEnrichment, c(rank, enrichment));
 }
+colnames(itEnrichment) = c("TopRank%", "Enrichment");
+write.csv(itEnrichment, itEnrichmentFileName);
+cat(as.character(Sys.time()),">> Done.\n");
+
+

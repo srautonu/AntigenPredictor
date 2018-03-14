@@ -1,5 +1,5 @@
 
-dataFilePrefix = "out_heu_comb_";
+dataFilePrefix = "out_comb_";
 rngSeeds = c(10, 20, 30, 40, 50);
 
 runs = vector(mode = "list", length = 5);
