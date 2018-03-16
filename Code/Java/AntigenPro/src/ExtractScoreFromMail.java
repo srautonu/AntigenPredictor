@@ -9,7 +9,7 @@ public class ExtractScoreFromMail {
 //        Name: BH13320
 //
 //        Amino Acids:
-//        MKINEFNEYIKEARSFDIDRMHGMRQRMRIAMALTVLFGLMTIALALAVAALTPLKTVEPFVIRVDNSTGIIETVSALKETPNDYDEAITRYFASKYVRAREGFQLSEAEHNFRLVSLLSSPEEQSRFAKWYAGNNPESPQNIYQNMIATVTIKSISFLSKDLIQVRYYKTVRELNDKENISHWVSILNFSYINAQISTQDRLINPLGFQVSEYRSDPEVIQ
+//        SKDLIQVRYYKTVRELNDKENISHWVSILNFSYINAQISTQDRLINPLGFQVSEYRSDPEVIQ
 //
 //        Predicted Probability of Antigenicity:
 //        0.850092
@@ -18,25 +18,28 @@ public class ExtractScoreFromMail {
         try (BufferedReader mailReader = new BufferedReader(new FileReader("AntigenPRO.mbox"))) {
 
             String strLine = "";
-            String strId = "";
-            double score = 0;
+            //String strId = "";
+            //double score = 0;
+			int count = 0;
 
             while (true) {
                 strLine = mailReader.readLine();
                 if (null == strLine)
                     break;
+
                 if (strLine.startsWith("Name:")) {
                     strId = strLine.split(": ")[1];
-                    for (int i = 0; i < 5; i++)
-                        mailReader.readLine();
+
+					while (true) {
+					    strLine = mailReader.readLine();
+					    if (strLine.startsWith("Predicted Probability of Antigenicity:"))
+					        break;
+					}
                     score = Double.parseDouble(mailReader.readLine());
 
                     System.out.println(strId + "," + score);
                 }
             }
-
-
-
         } catch(IOException e) {
             System.out.println(e);
         }

@@ -1,3 +1,4 @@
+
 library(e1071)
 library(ROCR)
 library(randomForest)
@@ -22,9 +23,9 @@ RDSFolder          = "RDSFiles/"
 # File names #
 rankedFeaturesFile = paste(RDSFolder, "ff_SvmRFE2"            , fScheme, ".rds", sep = "");
 featureFile        = paste(RDSFolder, "featurized"    , fScheme, ".rds", sep = "");
-testFeatureFile    = paste(RDSFolder, "testFeaturized", fScheme, ".rds", sep = "");
-#rfFile             = paste("rf_", maxFeatureCount, fScheme, ".rds", sep = "");
-rfFile             = paste("rfmodel_", maxFeatureCount, ".rds", sep = "");
+testFeatureFile    = paste(RDSFolder, "testFeaturized"    , fScheme, ".rds", sep = "");
+
+rfFile             = "Best_Balanced_RFModel.rds";
 
 cat(as.character(Sys.time()),">> Loading feature ranking ...\n");
 rankedFeatures = readRDS(rankedFeaturesFile);
