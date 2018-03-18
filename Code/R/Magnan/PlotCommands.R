@@ -11,16 +11,15 @@ library("reshape2")
 ###### Accuracy/MCC etc. vs. choice of nFeatures  ############
 
 # Use the appropriate data file here:
-xlsFile  = "PerfSearch_RF_Unbalanced_SvmRFE2_comb.xlsx"
-xlsSheet = "Tenfold_Avg"
+xlsFile  = "PerfSearch_RF_Balanced_SvmRFE2_comb.xlsx"
+xlsSheet = "Tenfold_MidGrain"
 
 workBook = loadWorkbook(xlsFile)
 data = readWorksheet(workBook, xlsSheet);
 
-#data = data[, c("nF", "AUCROC", "AUCPR", "Accuracy", "Sensitivity", "Specificity", "MCC")]
-#data = data[, c("nF", "AUCROC", "AUCPR", "Accuracy", "Sensitivity", "Specificity", "MCC")]
-data = data[, c("nF", "MCC")]
-#colnames(data)[2] = "auROC"
+data = data[, c("nF", "AUCROC", "AUCPR", "Accuracy", "Sensitivity", "Specificity")]
+colnames(data)[2] = "auROC";
+colnames(data)[3] = "auPR";
 
 df <- melt(data,  id.vars = "nF", variable.name = 'Metric');
 

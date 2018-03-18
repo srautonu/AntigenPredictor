@@ -64,11 +64,28 @@ features = featurefiltering(features, rankedFeatures, max(featureCountList));
 # So we need to deduct 1.
 features$protection = as.numeric(features$protection) - 1;
 
+rocCurvePoints = NULL;
+prCurvePoints = NULL;
+
 for (maxFeatureCount in featureCountList) 
 {
   trainingSet = featurefiltering(features, rankedFeatures, maxFeatureCount);
 
   perf = learnWithCV(protection ~ ., trainingSet, cross = nFolds, "rf");
+  
+  df = data.frame(
+    x = unlist(perf$rocCurve@x.values), 
+    y = unlist(perf$rocCurve@y.values), 
+    Features = as.character(maxFeatureCount)
+  );
+  rocCurvePoints = rbind(rocCurvePoints, df);
+  
+  df = data.frame(
+    x = unlist(perf$rocCurve@x.values), 
+    y = unlist(perf$rocCurve@y.values), 
+    Features = as.character(maxFeatureCount)
+  );
+  prCurvePoints = rbind(prCurvePoints, df);
     
   cat(
       maxFeatureCount,
@@ -118,6 +135,9 @@ for (maxFeatureCount in featureCountList)
   
   cat("\n");
 }
+
+saveRDS(rocCurvePoints, "rocData.rds");
+saveRDS(prCurvePoints , "prData.rds");
 
 cat("Best Result for nF = ", bestParams$maxFeatureCount, "\n");
 cat("AUCROC      : ", bestPerf$auc, "\n");

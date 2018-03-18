@@ -26,11 +26,14 @@ cat("Count of features:", maxFeatures,"\n");
 #maxFeatures = 7500;
 for(i in 1:maxFeatures){
   if(gregexpr(pattern = "C_", cname[i])[[1]][1]>0){
-    nGram = nGram + rankedt[i,impindex]
+    #nGram = nGram + rankedt[i,impindex]
+    nGram = nGram + 1
   } else if(gregexpr(pattern = "P_", cname[i])[[1]][1]>0){
-    PSF = PSF + rankedt[i,impindex]
+    #PSF = PSF + rankedt[i,impindex]
+    PSF = PSF + 1
   } else {
-    nGDip = nGDip + rankedt[i,impindex]
+    # nGDip = nGDip + rankedt[i,impindex]
+    nGDip = nGDip + 1
   }
 }
 

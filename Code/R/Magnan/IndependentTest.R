@@ -8,9 +8,9 @@ source('featurefiltering.R');
 timestamp();
 
 fScheme         = "_comb";
-maxFeatureCount = 490;
+maxFeatureCount = 500;
 seed            = 10;
-DoBalancing     = TRUE;
+DoBalancing     = FALSE;
 
 set.seed(seed);
 
@@ -25,7 +25,7 @@ rankedFeaturesFile = paste(RDSFolder, "ff_SvmRFE2"            , fScheme, ".rds",
 featureFile        = paste(RDSFolder, "featurized"    , fScheme, ".rds", sep = "");
 testFeatureFile    = paste(RDSFolder, "testFeaturized"    , fScheme, ".rds", sep = "");
 
-rfFile             = "Best_Balanced_RFModel.rds";
+rfFile             = "Best_Unbalanced_RFModel.rds";
 
 cat(as.character(Sys.time()),">> Loading feature ranking ...\n");
 rankedFeatures = readRDS(rankedFeaturesFile);
