@@ -1,36 +1,38 @@
 library(ggplot2)
 
-rocCurveFile = "ROCCurve_CV.eps";
-#prCurveFile  = "PRCurve_CV.eps";
+type = "Balanced_";
 
-rocCurvePoints = readRDS("rocData_Balanced.rds");
-#prCurvePoints  = readRDS("prData_Balanced.rds");
+rocCurveFile = paste0(type, "ROCCurve_CV.eps");
+prCurveFile  = paste0(type, "PRCurve_CV.eps");
 
-t = which(rocCurvePoints$Features %in% c(100, 300, 500));
+rocCurvePoints = readRDS(paste0(type, "rocData.rds");
+prCurvePoints  = readRDS(paste0(type, "prData.rds");
+
+t = which(rocCurvePoints$Features %in% c(100, 300, 500, 700));
 rocCurvePoints = rocCurvePoints[t,]
 
-#t = which(prCurvePoints$Features %in% c(100, 500, 700));
-#prCurvePoints = prCurvePoints[t,]
+t = which(prCurvePoints$Features %in% c(100, 300, 500, 700));
+prCurvePoints = prCurvePoints[t,]
 
 rocPlot = ggplot(rocCurvePoints,aes(x, y)) + 
   theme_bw(base_size = 36, base_family = "") +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
   theme(legend.title = element_blank()) +
   theme(legend.position = "top") +
-  geom_line(aes(colour=Features),size = 2) +
+  geom_line(aes(colour=Features),size = 3) +
   labs(x = "False Positive Rate", y = "True Positive Rate");
   
 postscript(file = rocCurveFile, paper = "letter");
-rocPlot;
+print(rocPlot);
 dev.off();
 
-# prPlot = ggplot(prCurvePoints,aes(x, y)) + 
-#   theme_bw(base_size = 36, base_family = "") +
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-#   theme(legend.title = element_blank()) +
-#   theme(legend.position = "top") +
-#   geom_line(aes(colour=tool),size = 3) +
-#   labs(x = "Recall", y = "Precision");
-# postscript(file = prCurveFile, paper = "letter");
-# prPlot;
-# dev.off();
+prPlot = ggplot(prCurvePoints,aes(x, y)) +
+  theme_bw(base_size = 36, base_family = "") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  theme(legend.title = element_blank()) +
+  theme(legend.position = "top") +
+  geom_line(aes(colour=Features),size = 3) +
+  labs(x = "Recall", y = "Precision");
+postscript(file = prCurveFile, paper = "letter");
+print(prPlot);
+dev.off();

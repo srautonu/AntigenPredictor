@@ -81,8 +81,8 @@ for (maxFeatureCount in featureCountList)
   rocCurvePoints = rbind(rocCurvePoints, df);
   
   df = data.frame(
-    x = unlist(perf$rocCurve@x.values), 
-    y = unlist(perf$rocCurve@y.values), 
+    x = unlist(perf$prCurve@x.values), 
+    y = unlist(perf$prCurve@y.values), 
     Features = as.character(maxFeatureCount)
   );
   prCurvePoints = rbind(prCurvePoints, df);
