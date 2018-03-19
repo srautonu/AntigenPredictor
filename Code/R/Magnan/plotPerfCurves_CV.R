@@ -10,7 +10,7 @@ library("reshape2")
 
 ###### Accuracy/MCC etc. vs. choice of nFeatures  ############
 
-type = "Balanced_";
+type = "Unbalanced_";
 
 # Use the appropriate data file here:
 xlsFile  = paste0("PerfSearch_RF_", type, "SvmRFE2_comb.xlsx");
