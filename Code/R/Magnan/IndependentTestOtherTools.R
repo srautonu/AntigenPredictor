@@ -3,7 +3,7 @@ library("ggplot2")
 library("ROCR")
 
 # Use the appropriate data file here:
-xlsFile  = "AntigenPRO_IT.xlsx"
+xlsFile  = "Vaxijen_IT.xlsx"
 xlsSheet = "Score"
 
 resultsFileName = "IndependentTestResults.csv"
@@ -28,6 +28,17 @@ for (threshold in seq(from=0.01, to=0.99, by=0.01)) {
 colnames(itData) = c("Threshold", "Accuracy", "Sensitivity", "Specificity", "MCC", "Precision");
 write.csv(itData, resultsFileName);
 cat(as.character(Sys.time()),">> Done.\n");
+
+pred = prediction(data$Score, data$protection);
+AUCROC  = ROCR::performance(pred,"auc")@y.values[[1]];
+
+prCurve  = ROCR::performance(pred,"prec", "rec");
+x = unlist(prCurve@x.values);
+y = unlist(prCurve@y.values);
+df = data.frame(x = x[2:length(x)], y = y[2:length(y)]);
+AUCPR  = trapz(df$x, df$y)
+
+cat("AUCROC: ", AUCROC, " AUCPR: ", AUCPR, "\n");
 
 cat(as.character(Sys.time()),">> Calculating enrichment ...\n");
 sortOrder = order(-data$Score);

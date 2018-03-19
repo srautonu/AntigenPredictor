@@ -1,3 +1,8 @@
+#########################################################
+# For writing to R window comment out the following line
+# in each graph
+# theme_bw(base_size = 36, base_family = "") +
+#########################################################
 
 xlsFile  = c("VaxiJen_IT.xlsx", "AntigenPRO_IT.xlsx", "PerfSearch_RF_SvmRFE2_comb.xlsx", "PerfSearch_RF_SvmRFE2_comb.xlsx");
 xlsSheet = c("Score"          , "Score"             , "ITScore_2_490"                  , "ITScore_1_500");
