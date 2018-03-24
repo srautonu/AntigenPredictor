@@ -19,7 +19,7 @@ for (type in c("Balanced_", "Unbalanced_")) {
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
     theme(legend.title = element_blank()) +
     theme(legend.position = "top") +
-    geom_line(aes(colour=Features),size = 3) +
+    geom_line(aes(colour=Features),size = 2) +
     labs(x = "False Positive Rate", y = "True Positive Rate");
     
   postscript(file = rocCurveFile, paper = "letter");
@@ -31,7 +31,7 @@ for (type in c("Balanced_", "Unbalanced_")) {
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
     theme(legend.title = element_blank()) +
     theme(legend.position = "top") +
-    geom_line(aes(colour=Features),size = 3) +
+    geom_line(aes(colour=Features),size = 2) +
     labs(x = "Recall", y = "Precision");
   postscript(file = prCurveFile, paper = "letter");
   print(prPlot);

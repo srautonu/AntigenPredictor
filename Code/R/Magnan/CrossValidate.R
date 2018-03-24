@@ -7,16 +7,17 @@ source('./learnWithCV.R')
 timestamp();
 
 set.seed(10);
-DoBalancing = TRUE;
+DoBalancing = FALSE;
 
-featureCountList = seq(from=10, to=600, by=10);
+#featureCountList = seq(from=10, to=600, by=10);
+featureCountList = 500
 
 # 10 fold CV
-nFolds = 10
+nFolds = -1
 
 fScheme = "_comb";
 
-RDSFolder          = "RDSFiles/"
+RDSFolder          = "./"
 
 rankedFeaturesFile = paste(RDSFolder, "ff_SvmRFE2"         , fScheme, ".rds", sep = "");
 featureFile        = paste(RDSFolder, "featurized" , fScheme, ".rds", sep = "");
@@ -30,11 +31,6 @@ cat(as.character(Sys.time()),">> Reading feature ranking from", rankedFeaturesFi
 rankedFeatures = readRDS(rankedFeaturesFile);
 cat(as.character(Sys.time()),">> Done\n");
 
-# jackknife
-if (nFolds < 0) {
-  nFolds = length(features[,1])
-}
-
 if (DoBalancing) {
 
   #
@@ -45,6 +41,12 @@ if (DoBalancing) {
   negativeSetInd = negativeSetInd[order(negativeSetInd)]
   features = rbind(features[1:576,], features[negativeSetInd,])
 }
+
+# jackknife
+if (nFolds < 0) {
+  nFolds = length(features[,1])
+}
+
 
 # random shuffle of features
 features <- features[sample(nrow(features)),]
