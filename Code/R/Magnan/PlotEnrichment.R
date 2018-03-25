@@ -3,6 +3,8 @@
 # in each graph
 # theme_bw(base_size = 36, base_family = "") +
 #########################################################
+library("ggplot2")
+library("XLConnect")
 
 xlsFile  = c(
   "VaxiJen_IT.xlsx",
@@ -17,7 +19,7 @@ xlsSheet = c(
   "ITEnrichment_1_500"
   );
 
-toolName = c("Vaxijen", "AntigenPRO", "Antigenic",  "Antigenic*")
+toolName = c("VaxiJen", "ANTIGENpro", "Antigenic",  "Antigenic*")
 
 enrichmentFile = "enrichment.eps"
 

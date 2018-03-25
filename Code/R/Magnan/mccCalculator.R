@@ -1,11 +1,11 @@
 data = read.csv("temp.csv")
 
-# Sn  = c(61.64, 57.53, 54.79, 53.42, 52.05)
-# Sp  = c(55.32, 60.79, 65.76, 71.44, 76.19)
-# Acc = c(55.64, 60.63, 65.21, 70.54, 74.98)
-Sn  = data$Sensitivity
-Sp  = data$Specificity
-Acc = data$Accuracy
+ Sn  = c(89.69)
+ Sp  = c(25.85)
+ Acc = c(59.48)
+# Sn  = data$Sensitivity
+# Sp  = data$Specificity
+# Acc = data$Accuracy
 
 P   = 576;
 N   = 576;
