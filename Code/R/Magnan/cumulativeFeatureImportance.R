@@ -26,14 +26,11 @@ cat("Count of features:", maxFeatures,"\n");
 #maxFeatures = 7500;
 for(i in 1:maxFeatures){
   if(gregexpr(pattern = "C_", cname[i])[[1]][1]>0){
-    #nGram = nGram + rankedt[i,impindex]
-    nGram = nGram + 1
+    nGram = nGram + rankedt[i,impindex]
   } else if(gregexpr(pattern = "P_", cname[i])[[1]][1]>0){
-    #PSF = PSF + rankedt[i,impindex]
-    PSF = PSF + 1
+    PSF = PSF + rankedt[i,impindex]
   } else {
-    # nGDip = nGDip + rankedt[i,impindex]
-    nGDip = nGDip + 1
+    nGDip = nGDip + rankedt[i,impindex]
   }
 }
 
@@ -53,7 +50,7 @@ cumFeatureImp = ggplot(data,aes(x=`Category`, y = CumImp)) +
   theme(legend.position="none") +
   theme(aspect.ratio = 0.6) +
   geom_bar(aes(fill = Category),stat = "identity", position = "dodge", width = 0.5) +
-  labs(x = "Feature Extraction Technique", y = "Cumulative Importance") +
+  labs(x = "Feature Types", y = "Cumulative Importance") +
   ylim(0,0.15);
   
 postscript(file = paste0("cumFeatureImp", maxFeatures, ".eps"), paper = "letter");
