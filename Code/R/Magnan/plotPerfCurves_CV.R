@@ -10,7 +10,7 @@ library("reshape2")
 
 ###### Accuracy/MCC etc. vs. choice of nFeatures  ############
 
-type = "Unbalanced_";
+type = "Balanced_";
 
 # Use the appropriate data file here:
 xlsFile  = paste0("PerfSearch_RF_", type, "SvmRFE2_comb.xlsx");
@@ -34,6 +34,6 @@ for (xlsSheet in c("Tenfold_Coarse", "Tenfold_MidGrain", "Tenfold_Avg")) {
     labs(x = "Num. of Features", y = "Perf. Score x 100");
   
   postscript(file = paste0(type, xlsSheet, ".eps"), paper = "letter");
-  print(nFeatureTuning);
+  print(nFeatureTuning + scale_colour_grey(start = 0, end = 0.8));
   dev.off();
 }

@@ -25,5 +25,5 @@ featureWeightsBar = ggplot(df,aes(x=reorder(rownames(df), -value), y = value)) +
   labs(x = "Features", y = "Importance score")
 
 postscript("featureWeightsBar.eps", paper = "letter");
-featureWeightsBar;
+featureWeightsBar + scale_fill_grey(start = 0, end = 0);
 dev.off();

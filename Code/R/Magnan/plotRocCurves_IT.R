@@ -47,7 +47,7 @@ rocPlot = ggplot(rocCurvePoints,aes(x, y)) +
   geom_line(aes(colour = tool),size = 3) +
   labs(x = "False Positive Rate", y = "True Positive Rate");
 postscript(file = rocCurveFile, paper = "letter");
-rocPlot;
+rocPlot + scale_colour_grey(start = 0, end = 0.6);
 dev.off();
 
 prPlot = ggplot(prCurvePoints,aes(x, y)) + 
@@ -58,5 +58,5 @@ prPlot = ggplot(prCurvePoints,aes(x, y)) +
   geom_line(aes(colour=tool),size = 3) +
   labs(x = "Recall", y = "Precision");
 postscript(file = prCurveFile, paper = "letter");
-prPlot;
+prPlot + scale_colour_grey(start = 0, end = 0.6);
 dev.off();

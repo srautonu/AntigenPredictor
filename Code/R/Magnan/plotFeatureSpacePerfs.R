@@ -47,6 +47,6 @@ featureSpacePerfCmp = ggplot(df,aes(x=Var1, y = value)) +
   ylim(0,1)
 
 postscript(file = epsFile, paper = "letter");
-featureSpacePerfCmp;
+featureSpacePerfCmp + scale_fill_grey(start = 0, end = 0.6);
 dev.off();
 

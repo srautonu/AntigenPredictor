@@ -23,7 +23,7 @@ PSF   = 0;
 maxFeatures = length(rankedt[,1]);
 cat("Count of features:", maxFeatures,"\n");
 
-#maxFeatures = 7500;
+# maxFeatures = 7500;
 for(i in 1:maxFeatures){
   if(gregexpr(pattern = "C_", cname[i])[[1]][1]>0){
     nGram = nGram + rankedt[i,impindex]
@@ -54,5 +54,5 @@ cumFeatureImp = ggplot(data,aes(x=`Category`, y = CumImp)) +
   ylim(0,0.15);
   
 postscript(file = paste0("cumFeatureImp", maxFeatures, ".eps"), paper = "letter");
-cumFeatureImp;
+cumFeatureImp + scale_fill_grey(start = 0, end = 0);
 dev.off();

@@ -23,7 +23,7 @@ for (type in c("Balanced_", "Unbalanced_")) {
     labs(x = "False Positive Rate", y = "True Positive Rate");
     
   postscript(file = rocCurveFile, paper = "letter");
-  print(rocPlot);
+  print(rocPlot + scale_colour_grey(start = 0, end = 0.6))
   dev.off();
   
   prPlot = ggplot(prCurvePoints,aes(x, y)) +
@@ -34,6 +34,6 @@ for (type in c("Balanced_", "Unbalanced_")) {
     geom_line(aes(colour=Features),size = 2) +
     labs(x = "Recall", y = "Precision");
   postscript(file = prCurveFile, paper = "letter");
-  print(prPlot);
+  print(prPlot + scale_colour_grey(start = 0, end = 0.6));
   dev.off();
 }
