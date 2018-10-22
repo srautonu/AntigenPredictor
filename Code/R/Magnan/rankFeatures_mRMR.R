@@ -13,8 +13,8 @@ RDSFolder = "RDSFiles/"
 
 fileNameSuffix = paste(fScheme, ".rds", sep = "");
 
-InitialRankedFeaturesFile = paste(RDSFolder, "ff" , fileNameSuffix, sep = "");
-FinalRankedFeaturesFile   = paste(RDSFolder, "ff_mRMR", fileNameSuffix, sep = "");
+InitialRankedFeaturesFile = paste(RDSFolder, "ff"        , fileNameSuffix, sep = "");
+FinalRankedFeaturesFile   = paste(RDSFolder, "ff_mRMR"   , fileNameSuffix, sep = "");
 featureFile               = paste(RDSFolder, "featurized", fileNameSuffix, sep = "");
 
 if (!file.exists(FinalRankedFeaturesFile)) {
@@ -44,12 +44,11 @@ if (!file.exists(FinalRankedFeaturesFile)) {
   
   # random shuffle of features
   features <- features[sample(nrow(features)),]
+  labelCol = which(colnames(features) == "protection");
   
   cat(as.character(Sys.time()),">> Computing feature ranking ...\n");
   
-  labelCol = which(colnames(features) == "protection");
-  
-  rankedFeatures = mRMR(features, labelCol, 200);
+  rankedFeatures = mRMR(features, labelCol, 600);
   saveRDS(rankedFeatures, FinalRankedFeaturesFile);
   cat(as.character(Sys.time()),">> Done\n");
 } else {
