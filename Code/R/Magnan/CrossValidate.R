@@ -6,22 +6,23 @@ source('./learnWithCV.R')
 
 timestamp();
 
-set.seed(10);
-DoBalancing = FALSE;
+seed = 10;
 
-#featureCountList = seq(from=10, to=600, by=10);
-featureCountList = 500
+set.seed(seed);
+DoBalancing = TRUE;
+
+featureCountList = seq(from=10, to=600, by=10);
 
 # 10 fold CV
-nFolds = -1
+nFolds = 10
 
 fScheme = "_comb";
 
-RDSFolder          = "./"
+RDSFolder = "RDSFiles/"
 
-rankedFeaturesFile = paste(RDSFolder, "ff_SvmRFE2"         , fScheme, ".rds", sep = "");
+rankedFeaturesFile = paste(RDSFolder, "ff_mRMR"    , fScheme, ".rds", sep = "");
 featureFile        = paste(RDSFolder, "featurized" , fScheme, ".rds", sep = "");
-outFile            = paste("out"        , fScheme, ".csv", sep = "");
+outFile            = paste("out_"   , seed         , fScheme, ".csv", sep = "");
 
 cat(as.character(Sys.time()),">> Reading training set features from", featureFile, "...\n");
 features = readRDS(featureFile);

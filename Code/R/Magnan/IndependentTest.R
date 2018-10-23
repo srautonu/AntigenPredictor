@@ -8,7 +8,7 @@ source('featurefiltering.R');
 timestamp();
 
 fScheme         = "_comb";
-maxFeatureCount = 500;
+maxFeatureCount = 530;
 seed            = 10;
 DoBalancing     = FALSE;
 
@@ -21,11 +21,17 @@ itEnrichmentFileName = "IT_Enrichment.csv";
 RDSFolder          = "RDSFiles/"
 
 # File names #
-rankedFeaturesFile = paste(RDSFolder, "ff_SvmRFE2"            , fScheme, ".rds", sep = "");
+rankedFeaturesFile = paste(RDSFolder, "ff_mRMR"       , fScheme, ".rds", sep = "");
 featureFile        = paste(RDSFolder, "featurized"    , fScheme, ".rds", sep = "");
-testFeatureFile    = paste(RDSFolder, "testFeaturized"    , fScheme, ".rds", sep = "");
+testFeatureFile    = paste(RDSFolder, "testFeaturized", fScheme, ".rds", sep = "");
 
-rfFile             = "Best_Unbalanced_RFModel.rds";
+if (DoBalancing) {
+  cat(as.character(Sys.time()),">> Balanced modeling ...\n");
+  rfFile = paste("Balanced_mRMR_RFModel_", maxFeatureCount, ".rds", sep = "");
+} else {
+  cat(as.character(Sys.time()),">> Unbalanced modeling ...\n");
+  rfFile = paste("Unbalanced_mRMR_RFModel_", maxFeatureCount, ".rds", sep = "");
+}
 
 cat(as.character(Sys.time()),">> Loading feature ranking ...\n");
 rankedFeatures = readRDS(rankedFeaturesFile);

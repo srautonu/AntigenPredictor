@@ -7,18 +7,19 @@ timestamp();
 
 set.seed(10);
 
-TestSetType = "TUB";
+#TestSetType = "TUB";
+TestSetType = commandArgs(trailingOnly=TRUE)[1];
 
-maxFeatureCount = 490;
+maxFeatureCount = 440;
 BalanceTrainingSet = TRUE;
 
 fScheme = "_comb";
 
 RDSFolder          = "RDSFiles/"
 
-rankedFeaturesFile = paste(RDSFolder, "ff_SvmRFE2" , fScheme, ".rds", sep = "");
+rankedFeaturesFile = paste(RDSFolder, "ff_mRMR" , fScheme, ".rds", sep = "");
 featureFile        = paste(RDSFolder, "featurized" , fScheme, ".rds", sep = "");
-outFile            = paste("out", fScheme, ".csv", sep = "");
+outFile            = paste("out_", TestSetType, fScheme, ".csv", sep = "");
 
 cat(as.character(Sys.time()),">> Reading training set features from", featureFile, "...\n");
 features = readRDS(featureFile);

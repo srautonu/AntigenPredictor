@@ -15,7 +15,7 @@ DoBalancing = FALSE;
 outFile     = "IndependentTestResults.csv";
 
 RDSFolder          = "RDSFiles/"
-rankedFeaturesFile = paste(RDSFolder, "ff_SvmRFE2"            , fScheme, ".rds", sep = "");
+rankedFeaturesFile = paste(RDSFolder, "ff_mRMR"       , fScheme, ".rds", sep = "");
 featureFile        = paste(RDSFolder, "featurized"    , fScheme, ".rds", sep = "");
 testFeatureFile    = paste(RDSFolder, "testFeaturized", fScheme, ".rds", sep = "");
 
