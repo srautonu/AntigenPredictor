@@ -9,12 +9,13 @@ timestamp();
 seed = 10;
 
 set.seed(seed);
-DoBalancing = TRUE;
+DoBalancing = FALSE;
 
-featureCountList = seq(from=10, to=600, by=10);
+#featureCountList = seq(from=10, to=600, by=10);
+featureCountList = c(530);
 
 # 10 fold CV
-nFolds = 10
+nFolds = -1
 
 fScheme = "_comb";
 
